@@ -1,0 +1,36 @@
+version: "3.1"
+
+stories:
+
+- story: happy path
+  steps:
+  - intent: inicioSesion
+  - action: action_start
+  - intent: affirm OR mood_great
+  - action: action_set_categories
+  - action: action_devolver_juego
+
+- story: sad path
+  steps:
+  - intent: inicioSesion
+  - action: action_start
+  - intent: deny OR mood_unhappy
+  - action: utter_lament
+  - action: utter_ask_for_categories
+  - intent: indicate_categories
+  - action: action_devolver_juego
+
+- story: more games
+  steps:
+  - action: action_devolver_juego
+  - intent: want_more
+  - action: action_devolver_juego
+
+- story: changes types of games
+  steps:
+  - intent: change_categories
+  - action: utter_ask_for_categories
+  - intent: indicate_categories
+  - action: action_devolver_juego
+
+

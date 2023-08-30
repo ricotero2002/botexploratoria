@@ -1,0 +1,92 @@
+version: "3.1"
+
+intents:
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - mood_great
+  - mood_unhappy
+  - bot_challenge
+  - mood_angry
+  - mood_lonely
+  - grateful
+  - want_more
+  - and
+  - or
+  - request
+  - inicioSesion
+  - indicate_categories
+  - change_categories
+
+actions:
+  - action_start
+  - action_devolver_juego
+  - action_set_categories
+
+responses:
+  utter_greet:
+  - text: "Como estas?"
+  - text: "Como va tu dia?"
+  - text: "Ya jugaste hoy?"
+  - text: "Que jugas ultimamente?"
+
+  utter_cheer_up:
+  - text: "Vamos a buscarte juegos para que estes mejor:"
+  - text: "Un juego seguro te mejora el animo?"
+
+  utter_did_that_help:
+  - text: "Como te puedo ayudar?"
+  - text: "Que te gustaria que haga por vos?"
+  - text: "Pedi lo que quieras y voy a intentar ayudarte"
+  - text: "Que puedo hacer por vos?"
+
+  utter_happy:
+  - text: "Genial"
+  - text: "Perfecto a seguir bien"
+  - text: "Epico"
+
+  utter_goodbye:
+  - text: "Bye"
+  - text: "Adios"
+  - text: "Hasta la vista"
+  - text: "Hasta la proxima"
+  - text: "Volve por la sombra"
+
+  utter_iamabot:
+  - text: "Soy un bot creado por Agustin Freire"
+  - text: "Soy un robot sin conciencia, por ahora"
+
+  utter_lament:
+  - text: "Lo siento por eso"
+  - text: "ohh lamento eso"
+  - text: "no me la contes"
+
+  utter_ask_for_categories:
+  - text: "dime que categorias te gustan, decime hasta 3 no te sarpes"
+  - text: "dicime que categorias de juegos te gustan? no digas mas de 3 no seas malo"
+
+entities:
+- categoria1
+- categoria2
+- categoria3
+- lastgame
+slots:
+  categoria:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: categoria1
+      - type: from_entity
+        entity: categoria2
+      - type: from_entity
+        entity: categoria3
+  game:
+    type: text
+    mappings:
+     - type: from_entity
+       entity: lastgame
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

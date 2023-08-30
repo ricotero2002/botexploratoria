@@ -1,0 +1,361 @@
+version: "3.1"
+
+nlu:
+
+- intent: change_categories
+  examples: |
+    - quiero otro tipo de juegos ahora
+    - me podes recomentar otro tipo de juegos?
+    - quiero otro tipo de juegos
+    - me gustarian otros tipo de juegos
+    - pueden ser otros tipos de juegos?
+    - podemos cambiar el tipo de los juegos?
+    - que tal otro tipos de juegos?
+
+- intent: indicate_categories
+  examples: |
+    - me gustan las categorias [](categoria1), [](categoria2), [](categoria3)
+    - me gustan las categorias [](categoria1), [](categoria2)
+    - me gustan las categorias [](categoria1)
+    - me gustan los juegos de [](categoria1), [](categoria2), [](categoria3)
+    - me gustan los juegos de [](categoria1), [](categoria2)
+    - me gustan los juegos de [](categoria1)
+    - me gustan [](categoria1), [](categoria2), [](categoria3)
+    - me gustan [](categoria1), [](categoria2)
+    - me gustan [](categoria1)
+    - me gustan las categorias [](categoria1) [](categoria2) [](categoria3)
+    - me gustan las categorias [](categoria1) [](categoria2)
+    - me gustan los juegos de [](categoria1) [](categoria2) [](categoria3)
+    - me gustan los juegos de [](categoria1) [](categoria2)
+    - me gustan [](categoria1) [](categoria2) [](categoria3)
+    - me gustan [](categoria1) [](categoria2)
+    - [](categoria1), [](categoria2), [](categoria3)
+    - [](categoria1), [](categoria2)
+    - [](categoria1)
+
+- intent: greet
+  examples: |
+    - hola
+    - hello
+    - buenas
+    - buenaaas
+    - buenos dias
+    - buenas tardes
+    - buenas noches
+    - weeeep
+    - vamoooos
+    - morning
+    - ola
+    - chaboonnn
+    - hi
+    - hey
+    - qué tal
+    - holaaa
+    - salut
+    - ciao
+    - bonjour
+    - aloha
+    - ¿qué tal la movida?
+    - holaaaaaa
+    - ¡Hola, qué tal!
+    - ¡Buen día!
+    - ¡Hola, amigo!
+    - ¡Saludos cordiales!
+    - ¡Hola, qué cuentas!
+    - ¡Hola, cómo estás!
+    - ¡Hola, buenas!
+    - ¡Hola, qué pasa!
+    - ¡Holi!
+    - ¡Buen comienzo de semana!
+    - ¡Feliz [día de la semana]!
+    - ¡Hola, cómo va todo!
+    - ¡Qué alegría verte!
+    - ¡Hola, qué hay de nuevo!
+    - ¡Buenas vibras!
+    - ¡Un saludo afectuoso!
+    - ¡Hola, un placer saludarte!
+    - ¡Hola, cómo te trata la vida!
+    - ¡Hey, qué bueno verte!
+    - ¡Hola, cómo andamos!
+
+- intent: goodbye
+  examples: |
+    - chau
+    - nos vemos
+    - hasta luego
+    - saludos
+    - saludooos
+    - bye
+    - que te vaya todo bien
+    - que te diviertas
+    - espero haberte ayudado
+    - suerte
+    - que tengas suerte
+    - anda por la sombra
+    - un placer todo
+    - un placer
+    - salute
+    - hasta la proxima
+    - adiós
+    - hasta pronto
+    - cuídate
+    - que tengas un buen día
+    - hasta la vista
+    - nos hablamos luego
+    - nos leemos pronto
+    - hasta más tarde
+    - que tengas un buen día
+    - que todo te vaya bien
+    - que te cuides mucho
+    - hasta mañana
+    - nos encontramos después
+    - te deseo lo mejor
+    - hasta otro día
+    - que tengas un día genial
+    - que te diviertas mucho
+    - hasta pronto, amigo/a
+    - cuídate y hasta la próxima
+    - que tengas un día maravilloso
+    - nos vemos en la próxima ocasión
+    - que tus planes se cumplan
+    - hasta la próxima vez
+    - que la pases excelente
+    - hasta luego, compañero/a
+    - que todo te salga como esperas
+    - nos reencontramos pronto
+    - que encuentres alegría en tu día
+
+- intent: affirm
+  examples: |
+    - si
+    - s
+    - yes
+    - por supuesto
+    - eso suena bien
+    - correcto
+    - Así es
+    - Claro que sí
+    - Por supuesto que sí
+    - Totalmente de acuerdo
+    - Estoy de acuerdo
+    - Absolutamente
+    - No hay duda al respecto
+    - Sin lugar a dudas
+    - Sin ninguna objeción
+    - No tengo ninguna reserva
+    - Indiscutiblemente
+    - Exactamente
+    - Afirmativo
+    - Definitivamente
+    - De acuerdo al cien por ciento
+    - Estoy completamente a favor
+    - Ciertamente
+    - Indudablemente
+    - Efectivamente
+
+- intent: deny
+  examples: |
+    - no
+    - n
+    - nunca
+    - jamas
+    - asi no
+    - no hay chance
+    - ni apalos
+    - nao
+    - nao nao
+    - nop
+    - negatico
+    - denegado
+    - negativo
+    - de ninguna manera
+    - en absoluto
+    - para nada
+    - ni hablar
+    - imposible
+    - no es posible
+    - descartado
+    - no lo creo
+    - de ningún modo
+    - en modo alguno
+    - ni por asomo
+    - no pienso así
+    - ni de casualidad
+    - de eso nada
+    - ni de broma
+    - bajo ningún concepto
+    - en ningún caso
+    - sin chance
+    - de ningún modo
+    - no va a suceder
+    - imposibilidad total
+
+- intent: mood_great
+  examples: |
+    - perfecto
+    - excelente
+    - asombroso
+    - sentirse como un rey
+    - maravilloso
+    - me siento muy bien
+    - soy genial
+    - Soy asombroso
+    - Voy a salvar el mundo.
+    - súper emocionado
+    - extremadamente bueno 
+    - tan tan perfecto
+    - tan bueno
+    - tan perfecto
+    - fabuloso
+    - radiante
+    - increíble
+    - estar en las nubes
+    - de maravilla
+    - en la cima del mundo
+    - estar de lo mejor
+    - fenomenal
+    - enérgico
+    - eufórico
+    - lleno de alegría
+    - en plenitud
+    - estar en su mejor momento
+    - en la cúspide
+    - en un estado de gracia
+    - en la gloria
+    - optimista
+    - de alto ánimo
+    - estar como pez en el agua
+    - en la cresta de la ola
+    - estar volando alto
+    - entusiasmado al máximo
+
+- intent: mood_unhappy
+  examples: |
+    - mi dia fue horrible
+    - Estoy triste
+    - no me siento muy bien
+    - Estoy decepcionado
+    - muy triste
+    - Estoy muy triste
+    - triste
+    - muy triste
+    - infeliz
+    - no es bueno
+    - no muy bueno
+    - extremadamente triste
+    - tan triste
+    - muy triste
+    - devastado
+    - desanimado
+    - abatido
+    - deprimido
+    - afligido
+    - desconsolado
+    - desilusionado
+    - amargado
+    - angustiado
+    - apenado
+    - melancólico
+    - desesperado
+    - descorazonado
+    - agobiado
+    - derrotado
+    - en las profundidades
+    - en un estado de tristeza
+    - en un mal momento
+    - en un bajón emocional
+    - en la oscuridad
+    - en la melancolía
+    - sumido en la tristeza
+    - con el ánimo por el suelo
+    - en un estado de desánimo
+    - en un estado de desilusión
+    - en un estado de angustia
+    - sintiéndome bajo
+    - en un estado de malestar emocional
+
+- intent: bot_challenge
+  examples: |
+    - sos un bot?
+    - sos un humano?
+    - estoy hablando con un bot?
+    - estoy hablando con un humano?
+
+- intent: mood_angry
+  examples: |
+    - te odio
+    - estoy enojado
+    - estoy caliente
+    - esta todo mal
+    - estoy muy enojado
+    - no me gusta nada de lo que me decis
+    - odio lo que me contestas
+    - odiar
+    - odio
+    - enojo
+    - enojado
+    - molesto
+
+- intent: mood_lonely
+  examples: |
+    - me siento solo
+    - solo
+    - solitario
+
+- intent: grateful
+  examples: |
+    - gracias
+    - muchas gracias
+    - thx
+    - me sirvio
+    - agradecido
+    - agradecer
+
+- intent: want_more
+  examples: |
+    - mas
+    - more
+    - maaaas
+    - +
+    - un poco mas
+    - cual mas
+
+- intent: and
+  examples: |
+    - y
+    - yyy
+    - tambien
+    - este y el otro
+    - este y este
+    - ,
+    - los dos juntos
+
+- intent: or
+  examples: |
+    - o
+    - or
+    - o tambien
+    - o quisas
+    - este o este
+    - este o aquel
+    - juntos o separados
+
+
+- intent: request
+  examples: |
+    - quiero
+    - querer
+    - necesito
+    - me gustaria
+    - me serviria
+    - servir
+    - gustar
+    - gustaria
+    - serviria
+    - me dirias
+    - contame sobre
+    - decime sobre
+
+- intent: inicioSesion
+  examples: |
+    - iniciarSesion
