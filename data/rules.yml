@@ -5,7 +5,7 @@ rules:
 - rule: inic conversation
   steps:
   - intent: inicioSesion
-  - action: action_start
+  - action: action_first
 
 - rule: Say goodbye anytime the user says goodbye
   steps:

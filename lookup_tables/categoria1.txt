@@ -1,0 +1,35 @@
+Accion
+RPG
+Aventura
+Casuales
+Indie
+Carreras
+Simulacion
+Deportes
+Rogue Like
+Plataformas
+Puzles
+Cartas
+Sandbox
+Bullet Hell
+Construccion
+Ciencia Ficcion
+Pixelados
+Exploracion
+Por Turnos
+Gestion
+Shooter
+Habilidad
+Estrategia
+Mundo Abierto
+Multijugador
+Viaje en el Tiempo
+Sigilo
+Narrativa
+Fantasia
+Fantasia Oscura
+Supervivencia
+Coleccion de Criaturas
+Survival Horror
+Estrategia en Tiempo Real
+Lucha

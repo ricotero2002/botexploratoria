@@ -6,23 +6,21 @@ intents:
   - affirm
   - deny
   - mood_great
-  - mood_unhappy
   - bot_challenge
-  - mood_angry
-  - mood_lonely
-  - grateful
-  - want_more
-  - and
-  - or
-  - request
+  - mas_juegos
+  - with_categories
+  - with_games
   - inicioSesion
   - indicate_categories
   - change_categories
+  - indicate_games
 
 actions:
-  - action_start
+  - action_session_start
   - action_devolver_juego
-  - action_set_categories
+  - action_set_categories_last_game
+  - action_set_categories_entitie_game
+  - action_first
 
 responses:
   utter_greet:
@@ -30,21 +28,6 @@ responses:
   - text: "Como va tu dia?"
   - text: "Ya jugaste hoy?"
   - text: "Que jugas ultimamente?"
-
-  utter_cheer_up:
-  - text: "Vamos a buscarte juegos para que estes mejor:"
-  - text: "Un juego seguro te mejora el animo?"
-
-  utter_did_that_help:
-  - text: "Como te puedo ayudar?"
-  - text: "Que te gustaria que haga por vos?"
-  - text: "Pedi lo que quieras y voy a intentar ayudarte"
-  - text: "Que puedo hacer por vos?"
-
-  utter_happy:
-  - text: "Genial"
-  - text: "Perfecto a seguir bien"
-  - text: "Epico"
 
   utter_goodbye:
   - text: "Bye"
@@ -57,28 +40,38 @@ responses:
   - text: "Soy un bot creado por Agustin Freire"
   - text: "Soy un robot sin conciencia, por ahora"
 
-  utter_lament:
-  - text: "Lo siento por eso"
-  - text: "ohh lamento eso"
-  - text: "no me la contes"
+  utter_ask_for_other_type:
+  - text: "queres que te recomiende en base a categorias o a juegos parecidos??"
+  - text: "preferis decirme categorias para buscar o en base a un juego parecido?"
+
+  utter_ask_for_games:
+  - text: "bien entonces juegos parecidos a cual te gustan?"
+  - text: "perfecto decime algun juego entonces?"
 
   utter_ask_for_categories:
-  - text: "dime que categorias te gustan, decime hasta 3 no te sarpes"
-  - text: "dicime que categorias de juegos te gustan? no digas mas de 3 no seas malo"
+  - text: "bien entonces que categorias te gustarian? decime hasta tres no te sarpess"
+  - text: "perfecto decime las categorias entonces?"
 
 entities:
 - categoria1
 - categoria2
 - categoria3
 - lastgame
+- usergame
 slots:
-  categoria:
+  categoria1:
     type: text
     mappings:
       - type: from_entity
         entity: categoria1
+  categoria2:
+    type: text
+    mappings:
       - type: from_entity
         entity: categoria2
+  categoria3:
+    type: text
+    mappings:
       - type: from_entity
         entity: categoria3
   game:
@@ -86,6 +79,11 @@ slots:
     mappings:
      - type: from_entity
        entity: lastgame
+  usergame:
+    type: text
+    mappings:
+     - type: from_entity
+       entity: usergame
 
 session_config:
   session_expiration_time: 60

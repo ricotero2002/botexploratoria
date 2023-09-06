@@ -1,0 +1,14 @@
+[
+  {
+    "name": "categoria1",
+    "pattern": "(\\bAccion\\b|\\bRPG\\b|\\bAventura\\b|\\bCasuales\\b|\\bIndie\\b|\\bCarreras\\b|\\bSimulacion\\b|\\bDeportes\\b|\\bRogue\\ Like\\b|\\bPlataformas\\b|\\bPuzles\\b|\\bCartas\\b|\\bSandbox\\b|\\bBullet\\ Hell\\b|\\bConstruccion\\b|\\bCiencia\\ Ficcion\\b|\\bPixelados\\b|\\bExploracion\\b|\\bPor\\ Turnos\\b|\\bGestion\\b|\\bShooter\\b|\\bHabilidad\\b|\\bEstrategia\\b|\\bMundo\\ Abierto\\b|\\bMultijugador\\b|\\bViaje\\ en\\ el\\ Tiempo\\b|\\bSigilo\\b|\\bNarrativa\\b|\\bFantasia\\b|\\bFantasia\\ Oscura\\b|\\bSupervivencia\\b|\\bColeccion\\ de\\ Criaturas\\b|\\bSurvival\\ Horror\\b|\\bEstrategia\\ en\\ Tiempo\\ Real\\b|\\bLucha\\b)"
+  },
+  {
+    "name": "categoria2",
+    "pattern": "(\\bAccion\\b|\\bRPG\\b|\\bAventura\\b|\\bCasuales\\b|\\bIndie\\b|\\bCarreras\\b|\\bSimulacion\\b|\\bDeportes\\b|\\bRogue\\ Like\\b|\\bPlataformas\\b|\\bPuzles\\b|\\bCartas\\b|\\bSandbox\\b|\\bBullet\\ Hell\\b|\\bConstruccion\\b|\\bCiencia\\ Ficcion\\b|\\bPixelados\\b|\\bExploracion\\b|\\bPor\\ Turnos\\b|\\bGestion\\b|\\bShooter\\b|\\bHabilidad\\b|\\bEstrategia\\b|\\bMundo\\ Abierto\\b|\\bMultijugador\\b|\\bViaje\\ en\\ el\\ Tiempo\\b|\\bSigilo\\b|\\bNarrativa\\b|\\bFantasia\\b|\\bFantasia\\ Oscura\\b|\\bSupervivencia\\b|\\bColeccion\\ de\\ Criaturas\\b|\\bSurvival\\ Horror\\b|\\bEstrategia\\ en\\ Tiempo\\ Real\\b|\\bLucha\\b)"
+  },
+  {
+    "name": "categoria3",
+    "pattern": "(\\bAccion\\b|\\bRPG\\b|\\bAventura\\b|\\bCasuales\\b|\\bIndie\\b|\\bCarreras\\b|\\bSimulacion\\b|\\bDeportes\\b|\\bRogue\\ Like\\b|\\bPlataformas\\b|\\bPuzles\\b|\\bCartas\\b|\\bSandbox\\b|\\bBullet\\ Hell\\b|\\bConstruccion\\b|\\bCiencia\\ Ficcion\\b|\\bPixelados\\b|\\bExploracion\\b|\\bPor\\ Turnos\\b|\\bGestion\\b|\\bShooter\\b|\\bHabilidad\\b|\\bEstrategia\\b|\\bMundo\\ Abierto\\b|\\bMultijugador\\b|\\bViaje\\ en\\ el\\ Tiempo\\b|\\bSigilo\\b|\\bNarrativa\\b|\\bFantasia\\b|\\bFantasia\\ Oscura\\b|\\bSupervivencia\\b|\\bColeccion\\ de\\ Criaturas\\b|\\bSurvival\\ Horror\\b|\\bEstrategia\\ en\\ Tiempo\\ Real\\b|\\bLucha\\b)"
+  }
+]

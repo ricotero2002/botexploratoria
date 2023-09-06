@@ -2,6 +2,217 @@ version: "3.1"
 
 nlu:
 
+- lookup: usergame
+  examples: |
+    - Dark Souls
+    - Hades
+    - Portal
+    - Stardew Valley
+    - The Binding of Isaac
+    - Dead Cells
+    - Hotline Miami
+    - Terraria
+    - Minecraft
+    - Brotato
+    - Downwell
+    - Bastion
+    - Enter the Gungeon
+    - Kenshi
+    - Game Dev Tycoon
+    - Sekiro
+    - Transistor
+    - Spore
+    - Darkest Dungeon
+    - Wizard Legend
+    - Forager
+    - Furi
+    - Planet Zoo
+    - Pyre
+    - Children of Morta
+    - Graveyard Keeper
+    - Hand of Fate 2
+    - Have a Nice Death
+    - Back to Bed
+    - Nioh
+    - Titan Souls
+    - Zoo Tycoon
+    - Super Meat Boy Forever
+    - The Legend of Zelda Ocarina of Time
+    - Super Mario Bros
+    - The Witcher 3 Wild Hunt
+    - Tetris
+    - The Elder Scrolls V Skyrim
+    - Red Dead Redemption 2
+    - Grand Theft Auto V
+    - Super Mario 64
+    - Halo Combat Evolved
+    - Portal 2
+    - Chrono Trigger
+    - Metal Gear Solid
+    - Mass Effect 2
+    - Super Smash Bros Ultimate
+    - Final Fantasy VII
+    - Bloodborne
+    - The Legend of Zelda Breath of the Wild
+    - Half-Life 2
+    - Super Metroid
+    - Overwatch
+    - Diablo II
+    - Super Mario World
+    - Resident Evil 4
+    - Fallout New Vegas
+    - The Last of Us
+    - Pokemon Red/Blue
+    - StarCraft
+    - Castlevania Symphony of the Night
+
+- lookup: categoria1
+  examples: |
+    - Accion
+    - RPG
+    - Aventura
+    - Casuales
+    - Indies
+    - Carreras
+    - Simulacion
+    - Deportes
+    - Rogue Like
+    - Plataformas
+    - Puzles
+    - Cartas
+    - Sandbox
+    - Bullet Hell
+    - Construccion
+    - Ciencia Ficcion
+    - Pixelados
+    - Exploracion
+    - Por Turnos
+    - Gestion
+    - Shooter
+    - Habilidad
+    - Estrategia
+    - Mundo Abierto
+    - Multijugador
+    - Viaje en el Tiempo
+    - Sigilo
+    - Narrativa
+    - Fantasia
+    - Fantasia Oscura
+    - Supervivencia
+    - Coleccion de Criaturas
+    - Survival Horror
+    - Estrategia en Tiempo Real
+    - Lucha
+
+- lookup: categoria2
+  examples: |
+    - Accion
+    - RPG
+    - Aventura
+    - Casuales
+    - Indies
+    - Carreras
+    - Simulacion
+    - Deportes
+    - Rogue Like
+    - Plataformas
+    - Puzles
+    - Cartas
+    - Sandbox
+    - Bullet Hell
+    - Construccion
+    - Ciencia Ficcion
+    - Pixelados
+    - Exploracion
+    - Por Turnos
+    - Gestion
+    - Shooter
+    - Habilidad
+    - Estrategia
+    - Mundo Abierto
+    - Multijugador
+    - Viaje en el Tiempo
+    - Sigilo
+    - Narrativa
+    - Fantasia
+    - Fantasia Oscura
+    - Supervivencia
+    - Coleccion de Criaturas
+    - Survival Horror
+    - Estrategia en Tiempo Real
+    - Lucha
+
+- lookup: categoria3
+  examples: |
+    - Accion
+    - RPG
+    - Aventura
+    - Casuales
+    - Indies
+    - Carreras
+    - Simulacion
+    - Deportes
+    - Rogue Like
+    - Plataformas
+    - Puzles
+    - Cartas
+    - Sandbox
+    - Bullet Hell
+    - Construccion
+    - Ciencia Ficcion
+    - Pixelados
+    - Exploracion
+    - Por Turnos
+    - Gestion
+    - Shooter
+    - Habilidad
+    - Estrategia
+    - Mundo Abierto
+    - Multijugador
+    - Viaje en el Tiempo
+    - Sigilo
+    - Narrativa
+    - Fantasia
+    - Fantasia Oscura
+    - Supervivencia
+    - Coleccion de Criaturas
+    - Survival Horror
+    - Estrategia en Tiempo Real
+    - Lucha
+
+- intent: with_games
+  examples: |
+    - prefiero en base a un juego
+    - en base a un juego
+    - prefiero decirte un juego
+    - te indico un juego mejor
+    - prefiero parecidos a un juego
+    - a un juego
+    - con un juego
+
+- intent: with_categories
+  examples: |
+    - te digo categorias
+    - prefiero con categorias
+    - mejor con alguna categoria
+    - recomendame en base a categorias
+    - con categorias mejor
+    - prefiero decirte alguna categoria
+    - mejor te digo alguna categoria
+    - categorias
+
+- intent: indicate_games
+  examples: |
+    - me gustan los juegos tipo [Dark Souls](usergame)
+    - me gustan los juegos tipo [Minecraft](usergame)
+    - me gustan los juegos tipo [Hades](usergame)
+    - el juego puede ser [Stardew Valley](usergame)
+    - el juego puede ser [Terraria](usergame)
+    - pueden ser juegos tipo [Furi](usergame)
+    - pueden ser juegos tipo [Forager](usergame)
+    - juegos tipo [Have a Nice Death](usergame)
+    - juegos tipo [Zoo Tycoon](usergame)
+
 - intent: change_categories
   examples: |
     - quiero otro tipo de juegos ahora
@@ -14,24 +225,24 @@ nlu:
 
 - intent: indicate_categories
   examples: |
-    - me gustan las categorias [](categoria1), [](categoria2), [](categoria3)
-    - me gustan las categorias [](categoria1), [](categoria2)
-    - me gustan las categorias [](categoria1)
-    - me gustan los juegos de [](categoria1), [](categoria2), [](categoria3)
-    - me gustan los juegos de [](categoria1), [](categoria2)
-    - me gustan los juegos de [](categoria1)
-    - me gustan [](categoria1), [](categoria2), [](categoria3)
-    - me gustan [](categoria1), [](categoria2)
-    - me gustan [](categoria1)
-    - me gustan las categorias [](categoria1) [](categoria2) [](categoria3)
-    - me gustan las categorias [](categoria1) [](categoria2)
-    - me gustan los juegos de [](categoria1) [](categoria2) [](categoria3)
-    - me gustan los juegos de [](categoria1) [](categoria2)
-    - me gustan [](categoria1) [](categoria2) [](categoria3)
-    - me gustan [](categoria1) [](categoria2)
-    - [](categoria1), [](categoria2), [](categoria3)
-    - [](categoria1), [](categoria2)
-    - [](categoria1)
+    - me gustan las categorias [Estrategia](categoria1), [Coleccion de Criaturas](categoria2) y [Accion](categoria3)
+    - me gustan las categorias [Accion](categoria1) y [Fantasia](categoria2)
+    - me gustan las categorias [Narrativa](categoria1)
+    - me gustan los juegos de [Shooter](categoria1), [Habilidad](categoria2) y [Multijugador](categoria3)
+    - me gustan los juegos de [Pixelados](categoria1) y [Cartas](categoria2)
+    - me gustan los juegos de [Construccion](categoria1)
+    - me gustan [RPG](categoria1), [Aventura](categoria2) y [Casuales](categoria3)
+    - me gustan [Casuales](categoria1), [Indies](categoria2)
+    - me gustan [Aventura](categoria1)
+    - me gustan las categorias [Viaje en el Tiempo](categoria1) [Rogue Like](categoria2) [Casuales](categoria3)
+    - me gustan las categorias [Lucha](categoria1) [Deportes](categoria2)
+    - me gustan los juegos de [Aventura](categoria1) [Sandbox](categoria2) [Indies](categoria3)
+    - me gustan los juegos de [Sandbox](categoria1) [Deportes](categoria2)
+    - me gustan [RPG](categoria1) [Casuales](categoria2) [Lucha](categoria3)
+    - me gustan [Plataformas](categoria1) [Rogue Like](categoria2)
+    - [Fantasia Oscura](categoria1), [RPG](categoria2), [Indies](categoria3)
+    - [Plataformas](categoria1), [Fantasia Oscura](categoria2)
+    - [Rogue Like](categoria1)
 
 - intent: greet
   examples: |
@@ -229,51 +440,6 @@ nlu:
     - estar volando alto
     - entusiasmado al máximo
 
-- intent: mood_unhappy
-  examples: |
-    - mi dia fue horrible
-    - Estoy triste
-    - no me siento muy bien
-    - Estoy decepcionado
-    - muy triste
-    - Estoy muy triste
-    - triste
-    - muy triste
-    - infeliz
-    - no es bueno
-    - no muy bueno
-    - extremadamente triste
-    - tan triste
-    - muy triste
-    - devastado
-    - desanimado
-    - abatido
-    - deprimido
-    - afligido
-    - desconsolado
-    - desilusionado
-    - amargado
-    - angustiado
-    - apenado
-    - melancólico
-    - desesperado
-    - descorazonado
-    - agobiado
-    - derrotado
-    - en las profundidades
-    - en un estado de tristeza
-    - en un mal momento
-    - en un bajón emocional
-    - en la oscuridad
-    - en la melancolía
-    - sumido en la tristeza
-    - con el ánimo por el suelo
-    - en un estado de desánimo
-    - en un estado de desilusión
-    - en un estado de angustia
-    - sintiéndome bajo
-    - en un estado de malestar emocional
-
 - intent: bot_challenge
   examples: |
     - sos un bot?
@@ -281,81 +447,20 @@ nlu:
     - estoy hablando con un bot?
     - estoy hablando con un humano?
 
-- intent: mood_angry
+- intent: mas_juegos
   examples: |
-    - te odio
-    - estoy enojado
-    - estoy caliente
-    - esta todo mal
-    - estoy muy enojado
-    - no me gusta nada de lo que me decis
-    - odio lo que me contestas
-    - odiar
-    - odio
-    - enojo
-    - enojado
-    - molesto
-
-- intent: mood_lonely
-  examples: |
-    - me siento solo
-    - solo
-    - solitario
-
-- intent: grateful
-  examples: |
-    - gracias
-    - muchas gracias
-    - thx
-    - me sirvio
-    - agradecido
-    - agradecer
-
-- intent: want_more
-  examples: |
-    - mas
-    - more
-    - maaaas
-    - +
-    - un poco mas
-    - cual mas
-
-- intent: and
-  examples: |
-    - y
-    - yyy
-    - tambien
-    - este y el otro
-    - este y este
-    - ,
-    - los dos juntos
-
-- intent: or
-  examples: |
-    - o
-    - or
-    - o tambien
-    - o quisas
-    - este o este
-    - este o aquel
-    - juntos o separados
-
-
-- intent: request
-  examples: |
-    - quiero
-    - querer
-    - necesito
-    - me gustaria
-    - me serviria
-    - servir
-    - gustar
-    - gustaria
-    - serviria
-    - me dirias
-    - contame sobre
-    - decime sobre
+    - quiero mas del mismo tipo
+    - decime mas parecidos
+    - podes indicarme alguno mas por el estilo
+    - quiero otro juego asi
+    - podes indicarme mas de ese tipo
+    - me gustarian mas juegos parecidos
+    - puede ser algun juego mas por ese estilo
+    - quiero alguno otro juego asi
+    - necesito mas juegos de ese estilo
 
 - intent: inicioSesion
   examples: |
     - iniciarSesion
+    - iniciar Sesion
+    - inicsesion

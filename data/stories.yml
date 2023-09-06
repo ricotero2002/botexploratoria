@@ -5,32 +5,59 @@ stories:
 - story: happy path
   steps:
   - intent: inicioSesion
-  - action: action_start
-  - intent: affirm OR mood_great
-  - action: action_set_categories
+  - action: action_first
+  - or:
+    - intent: affirm
+    - intent: mood_great
+  - action: action_set_categories_last_game
   - action: action_devolver_juego
 
 - story: sad path
   steps:
   - intent: inicioSesion
-  - action: action_start
-  - intent: deny OR mood_unhappy
-  - action: utter_lament
+  - action: action_first
+  - or:
+    - intent: deny
+    - intent: change_categories
+  - action: utter_ask_for_other_type
+  - checkpoint: change_type_of_games
+
+- story: change_with_categories
+  steps:
+  - checkpoint: change_type_of_games
+  - intent: with_categories
   - action: utter_ask_for_categories
   - intent: indicate_categories
+    entities:
+    - categoria1
+    - categoria2
+    - categoria3
+  - action: action_devolver_juego
+
+- story: change_with_games
+  steps:
+  - checkpoint: change_type_of_games
+  - intent: with_games
+  - action: utter_ask_for_games
+  - intent: indicate_games
+    entities:
+    - usergame
+  - action: action_set_categories_entitie_game
   - action: action_devolver_juego
 
 - story: more games
   steps:
   - action: action_devolver_juego
-  - intent: want_more
+  - intent: mas_juegos
   - action: action_devolver_juego
 
 - story: changes types of games
   steps:
-  - intent: change_categories
-  - action: utter_ask_for_categories
-  - intent: indicate_categories
   - action: action_devolver_juego
+  - or:
+    - intent: deny
+    - intent: change_categories
+  - action: utter_ask_for_other_type
+  - checkpoint: change_type_of_games
 
 
