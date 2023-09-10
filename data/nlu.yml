@@ -1,8 +1,306 @@
 version: "3.1"
-
 nlu:
-
-- lookup: usergame
+- intent: recomendame_un_juego
+  examples: |
+    - quiero que me recomiendes un juego
+    - recomendame un juego
+    - me podes recomendar un juego?
+    - podes recomendarme un juego
+    - decime algun juego
+    - decime un juego
+    - recomendame algun juego
+    - que juego me recomendas?
+    - que juego me recomendarias?
+    - que juego seria para mi?
+- intent: goodbye
+  examples: |
+    - chau
+    - nos vemos
+    - hasta luego
+    - saludos
+    - saludooos
+    - bye
+    - que te vaya todo bien
+    - que te diviertas
+    - espero haberte ayudado
+    - suerte
+    - que tengas suerte
+    - anda por la sombra
+    - un placer todo
+    - un placer
+    - salute
+    - hasta la proxima
+    - adiós
+    - hasta pronto
+    - cuídate
+    - que tengas un buen día
+    - hasta la vista
+    - nos hablamos luego
+    - nos leemos pronto
+    - hasta más tarde
+    - que todo te vaya bien
+    - que te cuides mucho
+    - hasta mañana
+    - nos encontramos después
+    - te deseo lo mejor
+    - hasta otro día
+    - que tengas un día genial
+    - que te diviertas mucho
+    - hasta pronto, amigo/a
+    - cuídate y hasta la próxima
+    - que tengas un día maravilloso
+    - nos vemos en la próxima ocasión
+    - que tus planes se cumplan
+    - hasta la próxima vez
+    - que la pases excelente
+    - hasta luego, compañero/a
+    - que todo te salga como esperas
+    - nos reencontramos pronto
+    - que encuentres alegría en tu día
+- intent: le_gustan_otro_tipo
+  examples: |
+    - me gustan otro tipo de juegos
+    - prefiero otro tipo de juegos
+    - me pintan otros tipos de juego
+    - soy mas de otro tipo de juegos
+    - prefiero otros juegos
+    - quiero otro tipo de juegos
+    - estaria para otro tipo de juegos
+    - estaria para otra onda
+    - soy de otra onda
+    - soy de otra onda de juegos
+- intent: no_le_gusto
+  examples: |
+    - no me gusto el juego
+    - no es mucho mi onda el juego
+    - no me gusta
+    - no esta bueno
+    - no me cabe mucho
+    - no me cabe el juego
+    - no me gusta el juego
+- intent: le_gusto
+  examples: |
+    - me gusto
+    - me gusto el juego
+    - me gusta ese juego
+    - que buen juego
+    - bunisimo el juego
+    - grandicimo juego
+    - exelente juego
+    - sarpado juego
+- intent: quiere_juego_parecido
+  examples: |
+    - quiero que me digas juegos parecidos
+    - quiero que me digas un juego parecido
+    - me pasas juegos parecidos
+    - me pasas un juego parecido
+    - me gustaria que me des juegos parecidos
+    - me gustaria que me des un juego parecido
+    - quiero juegos parecidos a este
+    - quiero un juego parecido
+    - me darias algun juego parecido
+    - me recomendarias juegos parecidos
+    - me recomendas un juego parecido
+    - podrias pasarme un juego parecido
+    - podrias recomendarme un juego parecido
+    - quiero mas juegos de este estilo
+    - quiero mas del mismo tipo
+    - podes indicarme alguno mas por el estilo
+    - quiero que me recomiendes un juego parecido
+- intent: quiere_categorias
+  examples: |
+    - quiero que me digas sus categorias
+    - me pasas las categorias del juego
+    - me pasas las categorias
+    - me gustaria que me des las categorias
+    - me gustaria que me des las categorias del juego
+    - quiero las categorias
+    - quiero las categorias del juego
+    - me darias las categorias
+    - me darias las categorias del juego
+    - podrias pasarme las categorias
+    - podrias pasarme las categorias del juego
+    - quiero ver las categorias del juego
+- intent: quiere_link_compra
+  examples: |
+    - quiero el link de compra del juego
+    - me pasas el link de compra del juego
+    - me pasas el link de compra
+    - me pasas el link
+    - me gustaria el link de compra
+    - me gustaria el link de compra del juego
+    - quiero el link de compra
+    - quiero el link
+    - me darias el link de compra
+    - podrias pasarme el link
+    - podrias pasarme el link de compra
+    - podrias pasarme el link de compra del juego
+    - me gustaria el link
+    - quiesiera el link
+- intent: quiere_sinopsis
+  examples: |
+    - quiero la sinopsis de ese juego
+    - me pasas la sinopsis del juego
+    - me gustaria la sinopsis del juego ese
+    - quiero una descripcion del juego
+    - me darias una descripcion del juego
+    - podrias pasarme una descripcion del juego
+    - podrias pasarme una sinopsis del juego
+    - me gustaria una sinopsis
+    - quiesiera una descripcion
+    - quiero una sinopsis del juego
+- intent: inicioSesion
+  examples: |
+    - iniciarSesion
+    - iniciar Sesion
+    - inicsesion
+    - inicioSesion
+- intent: recomendame_un_juego_en_base_a_juego
+  examples: |
+    - recomendame un juego en base al juego [Minecraft](juego)
+    - recomendame un juego en base al juego [Dark Souls](juego)
+    - recomendame un juego en base al juego [Hades](juego)
+    - recomendame un juego en base al juego [Portal](juego)
+    - recomendame un juego en base al juego [Stardew Valley](juego)
+    - recomendame un juego en base al juego [The Binding of Isaac](juego)
+    - recomendame un juego en base al juego [Dead Cells](juego)
+    - recomendame un juego en base al juego [Hotline Miami](juego)
+    - recomendame un juego en base al juego [Terraria](juego)
+    - recomendame un juego en base al juego [Brotato](juego)
+    - recomendame un juego en base al juego [Bastion](juego)
+    - recomendame un juego en base al juego [Enter the Gungeon](juego)
+    - recomendame un juego en base al juego [Kenshi](juego)
+    - recomendame un juego en base al juego [Game Dev Tycoon](juego)
+    - recomendame un juego en base al juego [Sekiro](juego)
+    - recomendame un juego parecido al juego [Stardew Valley](juego)
+    - recomendame un juego parecido al juego [Transistor](juego)
+    - recomendame un juego parecido al juego [Spore](juego)
+    - recomendame un juego parecido al juego [Darkest Dungeon](juego)
+    - recomendame un juego parecido al juego [Wizard Legend](juego)
+    - recomendame un juego parecido al juego [Forager](juego)
+    - recomendame un juego parecido al juego [Furi](juego)
+    - recomendame un juego parecido al juego [Planet Zoo](juego)
+    - recomendame un juego parecido al juego [Pyre](juego)
+    - recomendame un juego parecido a [Furi](juego)
+    - recomendame un juego parecido a [Children of Morta](juego)
+    - recomendame un juego parecido a [Graveyard Keeper](juego)
+    - recomendame un juego parecido a [Hand of Fate 2](juego)
+    - recomendame un juego parecido a [Have a Nice Death](juego)
+    - recomendame un juego parecido a [Back to Bed](juego)
+    - recomendame un juego parecido a [Nioh](juego)
+    - decime un juego parecido a [Children of Morta](juego)
+    - recomendame un juego en base al juego [Have a Nice Death](juego)
+    - recomendame un juego en base al juego [Titan Souls](juego)
+    - recomendame un juego en base al juego [Zoo Tycoon](juego)
+    - recomendame un juego en base al juego [Super Meat Boy Forever](juego)
+    - recomendame un juego en base al juego [The Witcher 3 Wild Hunt](juego)
+    - decime un juego parecido a [Overwatch 2](juego)
+    - decime un juego parecido a [Diablo II](juego)
+    - decime un juego parecido a [Resident Evil 3](juego)
+    - decime un juego parecido a [Resident Evil 7](juego)
+    - decime un juego parecido a [Fallout New Vegas](juego)
+    - decime un juego parecido a [The Last of Us](juego)
+    - decime un juego parecido a [StarCraft](juego)
+    - decime un juego parecido a [OneShot](juego)
+    - quiero un juego parecido a [Monument Valley](juego)
+    - quiero un juego parecido a [Left 4 Dead 2](juego)
+    - quiero un juego parecido a [Hollow Knight](juego)
+    - quiero un juego parecido a [Slay the Spire](juego)
+    - quiero un juego parecido a [Slime Rancher](juego)
+    - quiero un juego parecido a [Cuphead](juego)
+    - quiero un juego parecido a [Children of Morta](juego)
+    - quiero que me recomiendes un juego parecido a [Dark Souls][{"entity": "juego"}
+- intent: recomendame_un_juego_en_base_a_categoria
+  examples: |
+    - recomendame un juego en base a la categoria [Puzles](categoria)
+    - recomendame un juego en base a la categoria [Por Turnos](categoria)
+    - recomendame un juego en base a la categoria [Gestion](categoria)
+    - recomendame un juego en base a la categoria [Shooter](categoria)
+    - recomendame un juego en base a la categoria [Habilidad](categoria)
+    - recomendame un juego en base a la categoria [Estrategia](categoria)
+    - recomendame un juego en base a la categoria [Mundo Abierto](categoria)
+    - recomendame un juego en base a la categoria [Multijugador](categoria)
+    - recomendame un juego en base a la categoria [Viaje en el Tiempo](categoria)
+    - recomendame un juego en base a la categoria [Sigilo](categoria)
+    - recomendame un juego en base a la categoria [Narrativa](categoria)
+    - recomendame un juego en base a la categoria [Fantasia](categoria)
+    - recomendame un juego en base a la categoria [Fantasia Oscura](categoria)
+    - recomendame un juego en base a la categoria [Supervivencia](categoria)
+    - recomendame un juego de la categoria [Supervivencia](categoria)
+    - recomendame un juego de la categoria [Survival Horror](categoria)
+    - recomendame un juego de la categoria [Coleccion de Criaturas](categoria)
+    - recomendame un juego de la categoria [Estrategia en Tiempo Real](categoria)
+    - recomendame un juego de la categoria [Lucha](categoria)
+    - recomendame un juego de la categoria [ETR](categoria)
+    - recomendame un juego de la categoria [Construccion De Bases](categoria)
+    - recomendame un juego de [Accion](categoria)
+    - recomendame un juego de [RPG](categoria)
+    - recomendame un juego de [Aventura](categoria)
+    - recomendame un juego de [Casuales](categoria)
+    - recomendame un juego de [Indies](categoria)
+    - recomendame un juego de [Carreras](categoria)
+    - recomendame un juego de [Simulacion](categoria)
+    - recomendame un juego de [Deportes](categoria)
+    - recomendame un juego de [Rogue Like](categoria)
+    - recomendame un juego de [Estrategia](categoria)
+    - recomendame un juego de [Plataformas](categoria)
+    - quiero que me recomiendes un juego de la categorria [Puzle](categoria)
+- intent: le_gusta_categoria
+  examples: |
+    - me gusta la categoria [Accion](categoria)
+    - me gusta la categoria [RPG](categoria)
+    - me gusta la categoria [Aventura](categoria)
+    - me gusta la categoria [Casuales](categoria)
+    - me gusta la categoria [Indies](categoria)
+    - me gusta la categoria [Carreras](categoria)
+    - me gusta la categoria [Simulacion](categoria)
+    - me gusta la categoria [Deportes](categoria)
+    - me gusta la categoria [Rogue Like](categoria)
+    - me gusta la categoria [Estrategia](categoria)
+    - me gusta la categoria [Plataformas](categoria)
+    - me gustan los juegos de [Plataformas](categoria)
+    - me gustan los juegos de [Shooter](categoria)
+    - me gustan los juegos de [Puzles](categoria)
+    - me gustan los juegos de [Cartas](categoria)
+    - me gustan los juegos de [Sandbox](categoria)
+    - me gustan los juegos de [Bullet Hell](categoria)
+    - me gustan los juegos de [Construccion](categoria)
+    - me gustan los juegos de [Ciencia Ficcion](categoria)
+    - me gustan los juegos de [Pixelados](categoria)
+    - me gustan los juegos de [Exploracion](categoria)
+    - me gustan los juegos de la categoria [Plataformas](categoria)
+    - me gustan los juegos de la categoria [Shooter](categoria)
+    - me gustan los juegos de la categoria [Puzles](categoria)
+    - me gustan los juegos de la categoria [Cartas](categoria)
+    - me gustan los juegos de la categoria [Sandbox](categoria)
+    - me gustan los juegos de la categoria [Bullet Hell](categoria)
+    - me gustan los juegos de la categoria [Construccion](categoria)
+    - me gustan los juegos de la categoria [Ciencia Ficcion](categoria)
+    - me gustan los juegos de la categoria [Pixelados](categoria)
+    - me gustan los juegos de la categoria [Exploracion](categoria)
+    - me gusta la categoria [Accion](categoria), [Aventura](categoria), [Multijugador](categoria), [Estrategia](categoria) y [Puzle](categoria)
+- intent: indicar_categorias
+  examples: |
+    - la categoria [Exploracion](categoria)
+    - la categoria [Shooter](categoria)
+    - la categoria [Cartas](categoria)
+    - la categoria [Construccion](categoria)
+    - la categoria [Pixelados](categoria)
+    - la categoria [Puzles](categoria)
+    - la categoria [Sandbox](categoria)
+    - la categoria [Bullet Hell](categoria)
+    - no me gusta la categoria [Bullet Hell](categoria)
+    - no me gusta la categoria [Deportes](categoria)
+    - no me gusta la categoria [Construccion](categoria)
+    - no me gusta la categoria [Casuales](categoria)
+    - no me gusta la categoria [Ciencia Ficcion](categoria)
+    - no me gusta la categoria [Aventura](categoria)
+    - creo que la categoria [Rogue Like](categoria)
+    - creo que la categoria [Puzles](categoria)
+    - creo que la categoria [Construccion](categoria)
+    - creo que la categoria [Plataformas](categoria)
+    - creo que la categoria [Exploracion](categoria)
+- lookup: juego
   examples: |
     - Dark Souls
     - Hades
@@ -37,36 +335,78 @@ nlu:
     - Titan Souls
     - Zoo Tycoon
     - Super Meat Boy Forever
-    - The Legend of Zelda Ocarina of Time
-    - Super Mario Bros
+    - Super Meat Boy
     - The Witcher 3 Wild Hunt
     - Tetris
     - The Elder Scrolls V Skyrim
     - Red Dead Redemption 2
     - Grand Theft Auto V
-    - Super Mario 64
+    - Halo Wars Definitive Edition
     - Halo Combat Evolved
+    - Halo The Master Chief Collection
     - Portal 2
     - Chrono Trigger
-    - Metal Gear Solid
+    - Metal Gear Solid Master Collection Vol1
     - Mass Effect 2
     - Super Smash Bros Ultimate
     - Final Fantasy VII
     - Bloodborne
-    - The Legend of Zelda Breath of the Wild
-    - Half-Life 2
-    - Super Metroid
-    - Overwatch
+    - Half Life
+    - Half Life 2
+    - Half Life Alyx
+    - Overwatch 2
     - Diablo II
-    - Super Mario World
+    - Resident Evil 3
     - Resident Evil 4
+    - Resident Evil 7
     - Fallout New Vegas
     - The Last of Us
-    - Pokemon Red/Blue
     - StarCraft
-    - Castlevania Symphony of the Night
-
-- lookup: categoria1
+    - OneShot
+    - Monument Valley
+    - Left 4 Dead 2
+    - Hollow Knight
+    - Slay the Spire
+    - Slime Rancher
+    - Papers Please
+    - Cookie Clicker
+    - Kingdom Rush
+    - Cuphead
+    - God of War
+    - The Forest
+    - DOOM
+    - Outer Wilds
+    - Amnesia The Dark Descent
+    - Untitled Goose Game
+    - Coffee Talk
+    - Plague Inc Evolved
+    - Elden Ring
+    - Thymesia
+    - The Mageseeker
+    - South Park The Fractured But Whole
+    - Baldurs Gate 3
+    - Starfield
+    - Cyberpunk 2077
+    - Remnant II
+    - Fae Farm
+    - Divinity Original Sin 2
+    - Sea of Stars
+    - Hogwarts Legacy
+    - Fallout 76
+    - SCUM
+    - Mortal Kombat 1
+    - ONE PIECE PIRATE WARRIORS 4
+    - STAR WARS Jedi Fallen Order
+    - TEKKEN 8
+    - ONE PUNCH MAN A HERO NOBODY KNOWS
+    - Mortal Kombat X
+    - DAVE THE DIVER
+    - Football Manager 2023
+    - Farming Simulator 22
+    - Digimon World Next Order
+    - Monster Hunter Stories 2 Wings of Ruin
+    - Flutter Away
+- lookup: categoria
   examples: |
     - Accion
     - RPG
@@ -103,364 +443,16 @@ nlu:
     - Survival Horror
     - Estrategia en Tiempo Real
     - Lucha
-
-- lookup: categoria2
-  examples: |
-    - Accion
-    - RPG
-    - Aventura
-    - Casuales
-    - Indies
-    - Carreras
-    - Simulacion
-    - Deportes
-    - Rogue Like
-    - Plataformas
-    - Puzles
-    - Cartas
-    - Sandbox
-    - Bullet Hell
-    - Construccion
-    - Ciencia Ficcion
-    - Pixelados
-    - Exploracion
-    - Por Turnos
-    - Gestion
-    - Shooter
-    - Habilidad
-    - Estrategia
-    - Mundo Abierto
-    - Multijugador
-    - Viaje en el Tiempo
-    - Sigilo
-    - Narrativa
-    - Fantasia
-    - Fantasia Oscura
-    - Supervivencia
-    - Coleccion de Criaturas
-    - Survival Horror
-    - Estrategia en Tiempo Real
-    - Lucha
-
-- lookup: categoria3
-  examples: |
-    - Accion
-    - RPG
-    - Aventura
-    - Casuales
-    - Indies
-    - Carreras
-    - Simulacion
-    - Deportes
-    - Rogue Like
-    - Plataformas
-    - Puzles
-    - Cartas
-    - Sandbox
-    - Bullet Hell
-    - Construccion
-    - Ciencia Ficcion
-    - Pixelados
-    - Exploracion
-    - Por Turnos
-    - Gestion
-    - Shooter
-    - Habilidad
-    - Estrategia
-    - Mundo Abierto
-    - Multijugador
-    - Viaje en el Tiempo
-    - Sigilo
-    - Narrativa
-    - Fantasia
-    - Fantasia Oscura
-    - Supervivencia
-    - Coleccion de Criaturas
-    - Survival Horror
-    - Estrategia en Tiempo Real
-    - Lucha
-
-- intent: with_games
-  examples: |
-    - prefiero en base a un juego
-    - en base a un juego
-    - prefiero decirte un juego
-    - te indico un juego mejor
-    - prefiero parecidos a un juego
-    - a un juego
-    - con un juego
-
-- intent: with_categories
-  examples: |
-    - te digo categorias
-    - prefiero con categorias
-    - mejor con alguna categoria
-    - recomendame en base a categorias
-    - con categorias mejor
-    - prefiero decirte alguna categoria
-    - mejor te digo alguna categoria
-    - categorias
-
-- intent: indicate_games
-  examples: |
-    - me gustan los juegos tipo [Dark Souls](usergame)
-    - me gustan los juegos tipo [Minecraft](usergame)
-    - me gustan los juegos tipo [Hades](usergame)
-    - el juego puede ser [Stardew Valley](usergame)
-    - el juego puede ser [Terraria](usergame)
-    - pueden ser juegos tipo [Furi](usergame)
-    - pueden ser juegos tipo [Forager](usergame)
-    - juegos tipo [Have a Nice Death](usergame)
-    - juegos tipo [Zoo Tycoon](usergame)
-
-- intent: change_categories
-  examples: |
-    - quiero otro tipo de juegos ahora
-    - me podes recomentar otro tipo de juegos?
-    - quiero otro tipo de juegos
-    - me gustarian otros tipo de juegos
-    - pueden ser otros tipos de juegos?
-    - podemos cambiar el tipo de los juegos?
-    - que tal otro tipos de juegos?
-
-- intent: indicate_categories
-  examples: |
-    - me gustan las categorias [Estrategia](categoria1), [Coleccion de Criaturas](categoria2) y [Accion](categoria3)
-    - me gustan las categorias [Accion](categoria1) y [Fantasia](categoria2)
-    - me gustan las categorias [Narrativa](categoria1)
-    - me gustan los juegos de [Shooter](categoria1), [Habilidad](categoria2) y [Multijugador](categoria3)
-    - me gustan los juegos de [Pixelados](categoria1) y [Cartas](categoria2)
-    - me gustan los juegos de [Construccion](categoria1)
-    - me gustan [RPG](categoria1), [Aventura](categoria2) y [Casuales](categoria3)
-    - me gustan [Casuales](categoria1), [Indies](categoria2)
-    - me gustan [Aventura](categoria1)
-    - me gustan las categorias [Viaje en el Tiempo](categoria1) [Rogue Like](categoria2) [Casuales](categoria3)
-    - me gustan las categorias [Lucha](categoria1) [Deportes](categoria2)
-    - me gustan los juegos de [Aventura](categoria1) [Sandbox](categoria2) [Indies](categoria3)
-    - me gustan los juegos de [Sandbox](categoria1) [Deportes](categoria2)
-    - me gustan [RPG](categoria1) [Casuales](categoria2) [Lucha](categoria3)
-    - me gustan [Plataformas](categoria1) [Rogue Like](categoria2)
-    - [Fantasia Oscura](categoria1), [RPG](categoria2), [Indies](categoria3)
-    - [Plataformas](categoria1), [Fantasia Oscura](categoria2)
-    - [Rogue Like](categoria1)
-
-- intent: greet
-  examples: |
-    - hola
-    - hello
-    - buenas
-    - buenaaas
-    - buenos dias
-    - buenas tardes
-    - buenas noches
-    - weeeep
-    - vamoooos
-    - morning
-    - ola
-    - chaboonnn
-    - hi
-    - hey
-    - qué tal
-    - holaaa
-    - salut
-    - ciao
-    - bonjour
-    - aloha
-    - ¿qué tal la movida?
-    - holaaaaaa
-    - ¡Hola, qué tal!
-    - ¡Buen día!
-    - ¡Hola, amigo!
-    - ¡Saludos cordiales!
-    - ¡Hola, qué cuentas!
-    - ¡Hola, cómo estás!
-    - ¡Hola, buenas!
-    - ¡Hola, qué pasa!
-    - ¡Holi!
-    - ¡Buen comienzo de semana!
-    - ¡Feliz [día de la semana]!
-    - ¡Hola, cómo va todo!
-    - ¡Qué alegría verte!
-    - ¡Hola, qué hay de nuevo!
-    - ¡Buenas vibras!
-    - ¡Un saludo afectuoso!
-    - ¡Hola, un placer saludarte!
-    - ¡Hola, cómo te trata la vida!
-    - ¡Hey, qué bueno verte!
-    - ¡Hola, cómo andamos!
-
-- intent: goodbye
-  examples: |
-    - chau
-    - nos vemos
-    - hasta luego
-    - saludos
-    - saludooos
-    - bye
-    - que te vaya todo bien
-    - que te diviertas
-    - espero haberte ayudado
-    - suerte
-    - que tengas suerte
-    - anda por la sombra
-    - un placer todo
-    - un placer
-    - salute
-    - hasta la proxima
-    - adiós
-    - hasta pronto
-    - cuídate
-    - que tengas un buen día
-    - hasta la vista
-    - nos hablamos luego
-    - nos leemos pronto
-    - hasta más tarde
-    - que tengas un buen día
-    - que todo te vaya bien
-    - que te cuides mucho
-    - hasta mañana
-    - nos encontramos después
-    - te deseo lo mejor
-    - hasta otro día
-    - que tengas un día genial
-    - que te diviertas mucho
-    - hasta pronto, amigo/a
-    - cuídate y hasta la próxima
-    - que tengas un día maravilloso
-    - nos vemos en la próxima ocasión
-    - que tus planes se cumplan
-    - hasta la próxima vez
-    - que la pases excelente
-    - hasta luego, compañero/a
-    - que todo te salga como esperas
-    - nos reencontramos pronto
-    - que encuentres alegría en tu día
-
-- intent: affirm
-  examples: |
-    - si
-    - s
-    - yes
-    - por supuesto
-    - eso suena bien
-    - correcto
-    - Así es
-    - Claro que sí
-    - Por supuesto que sí
-    - Totalmente de acuerdo
-    - Estoy de acuerdo
-    - Absolutamente
-    - No hay duda al respecto
-    - Sin lugar a dudas
-    - Sin ninguna objeción
-    - No tengo ninguna reserva
-    - Indiscutiblemente
-    - Exactamente
-    - Afirmativo
-    - Definitivamente
-    - De acuerdo al cien por ciento
-    - Estoy completamente a favor
-    - Ciertamente
-    - Indudablemente
-    - Efectivamente
-
-- intent: deny
-  examples: |
-    - no
-    - n
-    - nunca
-    - jamas
-    - asi no
-    - no hay chance
-    - ni apalos
-    - nao
-    - nao nao
-    - nop
-    - negatico
-    - denegado
-    - negativo
-    - de ninguna manera
-    - en absoluto
-    - para nada
-    - ni hablar
-    - imposible
-    - no es posible
-    - descartado
-    - no lo creo
-    - de ningún modo
-    - en modo alguno
-    - ni por asomo
-    - no pienso así
-    - ni de casualidad
-    - de eso nada
-    - ni de broma
-    - bajo ningún concepto
-    - en ningún caso
-    - sin chance
-    - de ningún modo
-    - no va a suceder
-    - imposibilidad total
-
-- intent: mood_great
-  examples: |
-    - perfecto
-    - excelente
-    - asombroso
-    - sentirse como un rey
-    - maravilloso
-    - me siento muy bien
-    - soy genial
-    - Soy asombroso
-    - Voy a salvar el mundo.
-    - súper emocionado
-    - extremadamente bueno 
-    - tan tan perfecto
-    - tan bueno
-    - tan perfecto
-    - fabuloso
-    - radiante
-    - increíble
-    - estar en las nubes
-    - de maravilla
-    - en la cima del mundo
-    - estar de lo mejor
-    - fenomenal
-    - enérgico
-    - eufórico
-    - lleno de alegría
-    - en plenitud
-    - estar en su mejor momento
-    - en la cúspide
-    - en un estado de gracia
-    - en la gloria
-    - optimista
-    - de alto ánimo
-    - estar como pez en el agua
-    - en la cresta de la ola
-    - estar volando alto
-    - entusiasmado al máximo
-
-- intent: bot_challenge
-  examples: |
-    - sos un bot?
-    - sos un humano?
-    - estoy hablando con un bot?
-    - estoy hablando con un humano?
-
-- intent: mas_juegos
-  examples: |
-    - quiero mas del mismo tipo
-    - decime mas parecidos
-    - podes indicarme alguno mas por el estilo
-    - quiero otro juego asi
-    - podes indicarme mas de ese tipo
-    - me gustarian mas juegos parecidos
-    - puede ser algun juego mas por ese estilo
-    - quiero alguno otro juego asi
-    - necesito mas juegos de ese estilo
-
-- intent: inicioSesion
-  examples: |
-    - iniciarSesion
-    - iniciar Sesion
-    - inicsesion
+    - ETR
+    - Construccion De Bases
+    - Terror
+    - Zombis
+    - Elecciones
+    - Metroidvaina
+    - Clicker
+    - Clasico
+    - Divertido
+    - Conversacion
+    - CiberPunk
+	  - Magia
+	  - Anime

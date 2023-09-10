@@ -2,62 +2,188 @@ version: "3.1"
 
 stories:
 
-- story: happy path
+- story : inicio
   steps:
   - intent: inicioSesion
   - action: action_first
-  - or:
-    - intent: affirm
-    - intent: mood_great
-  - action: action_set_categories_last_game
-  - action: action_devolver_juego
+  - checkpoint: recomendo_juego
 
-- story: sad path
+- story : recomiendo_un_juego
   steps:
+  - intent: recomendame_un_juego
+  - action: action_devolver_juego
+  - checkpoint: recomendo_juego
+
+- story : pide_sinopsis
+  steps:
+  - checkpoint: recomendo_juego
+  - intent: quiere_sinopsis
+  - action: action_devolver_sinopsis
+  - checkpoint: recomendo_juego
+
+- story : pide_link_compra
+  steps:
+  - checkpoint: recomendo_juego
+  - intent: quiere_link_compra
+  - action: action_devolver_link
+  - checkpoint: recomendo_juego
+
+- story : pide_sus_categorias
+  steps:
+  - checkpoint: recomendo_juego
+  - intent: quiere_categorias
+  - action: action_devolver_categorias
+  - checkpoint: recomendo_juego
+
+- story : pide_juego_parecido
+  steps:
+  - checkpoint: recomendo_juego
+  - intent: quiere_juego_parecido
+  - action: action_devolver_juego_parecido
+  - checkpoint: recomendo_juego
+
+- story : le_gusto_el_juego
+  steps:
+  - checkpoint: recomendo_juego
+  - intent: le_gusto
+  - action: action_setear_categorias
+  - checkpoint: recomendo_juego
+
+- story: no_le_gusto
+  steps:
+  - checkpoint: recomendo_juego
+  - intent: no_le_gusto
+  - action: action_preguntar_categorias
+  - intent: indicar_categorias
+  - action: action_borrar_categorias
+  - checkpoint: recomendo_juego
+
+- story : recomiendo_un_juego_en_base_a_juego
+  steps:
+  - intent: recomendame_un_juego_en_base_a_juego
+  - action: action_devolver_juego_en_base_a_juego
+  - checkpoint: recomendo_juego
+   
+- story : recomiendo_un_juego_en_base_a_categoria
+  steps:
+  - intent: recomendame_un_juego_en_base_a_categoria
+  - action: action_devolver_juego_en_base_a_categoria
+  - checkpoint: recomendo_juego
+
+- story : gusta_categoria
+  steps:
+  - intent: le_gusta_categoria
+  - action: action_poner_categorias
+
+- story: interactive_story_1
+  steps:
+  - action: action_first
   - intent: inicioSesion
   - action: action_first
-  - or:
-    - intent: deny
-    - intent: change_categories
-  - action: utter_ask_for_other_type
-  - checkpoint: change_type_of_games
-
-- story: change_with_categories
-  steps:
-  - checkpoint: change_type_of_games
-  - intent: with_categories
-  - action: utter_ask_for_categories
-  - intent: indicate_categories
+  - slot_was_set:
+    - juegos:
+      - Pyre
+  - intent: quiere_sinopsis
+  - action: action_devolver_sinopsis
+  - intent: quiere_link_compra
+  - action: action_devolver_link
+  - intent: quiere_categorias
+  - action: action_devolver_categorias
+  - intent: quiere_juego_parecido
+  - action: action_devolver_juego_parecido
+  - slot_was_set:
+    - juegos:
+      - Pyre
+      - Wizard Legend
+  - intent: le_gusto
+  - action: action_setear_categorias
+  - slot_was_set:
+    - categorias:
+      - Rogue Like
+      - Indies
+      - Bullet Hell
+  - intent: recomendame_un_juego
+  - action: action_devolver_juego
+  - slot_was_set:
+    - juegos:
+      - Pyre
+      - Wizard Legend
+      - Hades
+  - intent: no_le_gusto
+  - action: action_preguntar_categorias
+  - intent: indicar_categorias
     entities:
-    - categoria1
-    - categoria2
-    - categoria3
-  - action: action_devolver_juego
-
-- story: change_with_games
-  steps:
-  - checkpoint: change_type_of_games
-  - intent: with_games
-  - action: utter_ask_for_games
-  - intent: indicate_games
+    - categoria: Accion
+    - categoria: Accion
+  - action: action_borrar_categorias
+  - slot_was_set:
+    - categorias:
+      - Rogue Like
+      - Indies
+      - Bullet Hell
+  - intent: recomendame_un_juego
     entities:
-    - usergame
-  - action: action_set_categories_entitie_game
-  - action: action_devolver_juego
+    - categoria: Puzle
+  - intent: recomendame_un_juego_en_base_a_categoria
+    entities:
+    - categoria: Puzle
+  - action: action_devolver_juego_en_base_a_categoria
+  - slot_was_set:
+    - juegos:
+      - Pyre
+      - Wizard Legend
+      - Hades
+      - Outer Wilds
+  - intent: recomendame_un_juego_en_base_a_juego
+    entities:
+    - juego: Dark Souls
+    - juego: Dark Souls
+  - action: action_devolver_juego_en_base_a_juego
+  - slot_was_set:
+    - juegos:
+      - Pyre
+      - Wizard Legend
+      - Hades
+      - Outer Wilds
+      - Nioh
+  - intent: le_gusta_categoria
+    entities:
+    - categoria: Accion
+    - categoria: Accion
+  - action: action_poner_categorias
 
-- story: more games
+- story: interactive_story_2
   steps:
-  - action: action_devolver_juego
-  - intent: mas_juegos
-  - action: action_devolver_juego
-
-- story: changes types of games
-  steps:
-  - action: action_devolver_juego
-  - or:
-    - intent: deny
-    - intent: change_categories
-  - action: utter_ask_for_other_type
-  - checkpoint: change_type_of_games
-
-
+  - action: action_first
+  - intent: inicioSesion
+  - action: action_first
+  - slot_was_set:
+    - juegos:
+      - StarCraft
+  - intent: le_gusto
+  - action: action_setear_categorias
+  - slot_was_set:
+    - categorias:
+      - Estrategia en Tiempo Real
+      - Ciencia Ficcion
+      - Multijugador
+  - intent: le_gusta_categoria
+    entities:
+    - categoria: Accion
+    - categoria: Aventura
+    - categoria: Multijugador
+    - categoria: Estrategia y
+    - categoria: Puzle
+  - intent: le_gusta_categoria
+    entities:
+    - categoria: Accion
+    - categoria: Aventura
+    - categoria: Multijugador
+    - categoria: Estrategia
+    - categoria: Puzle
+  - action: action_poner_categorias
+  - slot_was_set:
+    - categorias:
+      - Aventura
+      - Accion
+      - Estrategia

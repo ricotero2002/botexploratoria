@@ -1,90 +1,54 @@
-version: "3.1"
-
+version: '3.1'
 intents:
-  - greet
-  - goodbye
-  - affirm
-  - deny
-  - mood_great
-  - bot_challenge
-  - mas_juegos
-  - with_categories
-  - with_games
-  - inicioSesion
-  - indicate_categories
-  - change_categories
-  - indicate_games
-
+- goodbye
+- indicar_categorias
+- inicioSesion
+- le_gusta_categoria
+- le_gustan_otro_tipo
+- le_gusto
+- nlu_fallback
+- no_le_gusto
+- quiere_categorias
+- quiere_juego_parecido
+- quiere_link_compra
+- quiere_sinopsis
+- recomendame_un_juego
+- recomendame_un_juego_en_base_a_categoria
+- recomendame_un_juego_en_base_a_juego
 actions:
-  - action_session_start
-  - action_devolver_juego
-  - action_set_categories_last_game
-  - action_set_categories_entitie_game
-  - action_first
-
+- action_poner_categorias
+- action_setear_categorias
+- action_first
+- action_devolver_juego_parecido
+- action_devolver_juego_en_base_a_categoria
+- action_devolver_sinopsis
+- action_borrar_categorias
+- action_preguntar_categorias
+- action_devolver_categorias
+- action_devolver_juego
+- action_devolver_link
+- action_devolver_juego_en_base_a_juego
+- utter_goodbye
+- action_session_start
 responses:
-  utter_greet:
-  - text: "Como estas?"
-  - text: "Como va tu dia?"
-  - text: "Ya jugaste hoy?"
-  - text: "Que jugas ultimamente?"
-
   utter_goodbye:
-  - text: "Bye"
-  - text: "Adios"
-  - text: "Hasta la vista"
-  - text: "Hasta la proxima"
-  - text: "Volve por la sombra"
-
-  utter_iamabot:
-  - text: "Soy un bot creado por Agustin Freire"
-  - text: "Soy un robot sin conciencia, por ahora"
-
-  utter_ask_for_other_type:
-  - text: "queres que te recomiende en base a categorias o a juegos parecidos??"
-  - text: "preferis decirme categorias para buscar o en base a un juego parecido?"
-
-  utter_ask_for_games:
-  - text: "bien entonces juegos parecidos a cual te gustan?"
-  - text: "perfecto decime algun juego entonces?"
-
-  utter_ask_for_categories:
-  - text: "bien entonces que categorias te gustarian? decime hasta tres no te sarpess"
-  - text: "perfecto decime las categorias entonces?"
-
+  - text: nos vemoooo
 entities:
-- categoria1
-- categoria2
-- categoria3
-- lastgame
-- usergame
+- categoria
+- juego
 slots:
-  categoria1:
-    type: text
+  categorias:
+    type: any
+    initial_value: []
+    influence_conversation: false
     mappings:
-      - type: from_entity
-        entity: categoria1
-  categoria2:
-    type: text
+    - type: custom
+  juegos:
+    type: any
+    initial_value: []
+    influence_conversation: false
     mappings:
-      - type: from_entity
-        entity: categoria2
-  categoria3:
-    type: text
-    mappings:
-      - type: from_entity
-        entity: categoria3
-  game:
-    type: text
-    mappings:
-     - type: from_entity
-       entity: lastgame
-  usergame:
-    type: text
-    mappings:
-     - type: from_entity
-       entity: usergame
-
+    - type: custom
 session_config:
   session_expiration_time: 60
   carry_over_slots_to_new_session: true
