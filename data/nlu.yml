@@ -78,6 +78,18 @@ nlu:
     - no me cabe mucho
     - no me cabe el juego
     - no me gusta el juego
+    - no me gusta este juego
+    - este juego no es de mi agrado
+    - no me gusta este tipo de juego
+    - no soy muy aferrimo a este tipo de juego
+    - me desagrada este juego
+    - no lo puedo ni ver el juego
+    - no lo puedo ni ver este juego
+    - malisimo el juego
+    - no me gusta nada este juego
+    - malisimo este juego
+    - muy malo este juego
+    - medio malo este juego
 - intent: le_gusto
   examples: |
     - me gusto
@@ -88,6 +100,19 @@ nlu:
     - grandicimo juego
     - exelente juego
     - sarpado juego
+    - muy bueno este juego
+    - muy bueno el juego
+    - me encanta este juego
+    - impresionante este juego
+    - na na sarpado juego
+    - me vuelvo loco con este juego
+    - amo este juego
+    - ame este juego
+    - soy muy fanatico de este juego
+    - me encanto este juego
+    - me encanta este juego
+    - muy bueno el juego que me recomendaste
+    - muy bueno este juego que me recomendaste
 - intent: quiere_juego_parecido
   examples: |
     - quiero que me digas juegos parecidos
@@ -107,6 +132,14 @@ nlu:
     - quiero mas del mismo tipo
     - podes indicarme alguno mas por el estilo
     - quiero que me recomiendes un juego parecido
+    - necesito que me digas une juego parecido
+    - tendras algun juego parecido para decirme?
+    - tendras por ahi algun juego parecido?
+    - me podrias recomendar algun juego parecido?
+    - me podrias recomendar un juego parecido?
+    - me encantaria un juego parecido a este
+    - me dirias algun juego parecido?
+    - me dirias algun juego parecido a este?
 - intent: quiere_categorias
   examples: |
     - quiero que me digas sus categorias
@@ -121,6 +154,15 @@ nlu:
     - podrias pasarme las categorias
     - podrias pasarme las categorias del juego
     - quiero ver las categorias del juego
+    - me das las categorias de este juego?
+    - me da las categorias del juego que me dijiste?
+    - que categorias tiene este juego?
+    - sabes de que categorias es el juego?
+    - que categorias tiene este juego?
+    - che que categorias tiene este juego?
+    - de que genero es este juego?
+    - me decis el genero del juego?
+    - quiero saber el genero del juego
 - intent: quiere_link_compra
   examples: |
     - quiero el link de compra del juego
@@ -137,6 +179,17 @@ nlu:
     - podrias pasarme el link de compra del juego
     - me gustaria el link
     - quiesiera el link
+    - me das el link de compra del juego?
+    - quiero comprar el juego
+    - me gustaria comprar el juego
+    - me pinta comprar el juego
+    - quisiera comprar este juego
+    - estaria para comprar este juego
+    - me dieron ganas de comprar el juego
+    - me dieron ganas de comprarlo
+    - esta para comprarlo
+    - quiero comprarlo
+    - me gustaria comprarlo
 - intent: quiere_sinopsis
   examples: |
     - quiero la sinopsis de ese juego
@@ -149,6 +202,14 @@ nlu:
     - me gustaria una sinopsis
     - quiesiera una descripcion
     - quiero una sinopsis del juego
+    - me gustaria saber mas info del juego
+    - tenes alguna data extra del juego?
+    - me gustaria tener mas informacion del juego
+    - tenes algun tipo de informacion del juego?
+    - de que trata este juego?
+    - me decis mas o menos de que trata el juego
+    - quiero saber de que va el juego
+    - quisiera saber como funciona el juego
 - intent: inicioSesion
   examples: |
     - iniciarSesion
@@ -454,5 +515,5 @@ nlu:
     - Divertido
     - Conversacion
     - CiberPunk
-	  - Magia
-	  - Anime
+    - Magia
+    - Anime

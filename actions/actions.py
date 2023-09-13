@@ -83,6 +83,11 @@ def devolverSinopsis(juego) -> Text:
             print(lista)
     return lista
 
+def capitalize_first_char(text):
+    words = text.split()
+    capitalized_words = [word.capitalize() for word in words]
+    return ' '.join(capitalized_words)
+
 class ActionSessionStart(Action):
     def name(self) -> Text:
         return "action_session_start"
@@ -217,7 +222,7 @@ class ActionDevolverJuegoParecido(Action):
                 categoriasIgnoradas.append(last_element)
                 categorias.pop()  # Remove the last element from the list
                 respuesta = devolverJuegos(categorias)
-                diferentesResultados= [item for item in respuesta if item not in juegos]
+                diferentesResultados= [item for item in respuesta if item not in juegosRecomendados]
             if diferentesResultados:
                 imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
                 juego= random.choice(diferentesResultados)
@@ -241,6 +246,8 @@ class ActionSetearCategorias(Action):
         juegosRecomendados= tracker.get_slot("juegos")
         juegoAnterior= juegosRecomendados[-1]
         categorias= devolverCategorias(juegoAnterior)
+        message = f"Me alegro que te haya gustado el juego {juegoAnterior}, lo tendre en cuenta entonces"
+        dispatcher.utter_message(text=message)
         return [SlotSet("categorias", categorias)]
 
 class ActionPreguntarCategorias(Action):
@@ -267,6 +274,7 @@ class ActionBorrarCategorias(Action):
         latest_entities = tracker.latest_message.get('entities', [])
         # Filter the entities based on the entity name
         categoriasNoLeGustan = [entity['value'] for entity in latest_entities if entity['entity'] == 'categoria']
+        categoriasNoLeGustan = [capitalize_first_char(item) for item in categoriasNoLeGustan]
         categoriasActuales= tracker.get_slot("categorias")
         categorias= [item for item in categoriasActuales if item not in categoriasNoLeGustan]
         imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasNoLeGustan])
@@ -283,6 +291,7 @@ class ActionDevolverJuegoEnBaseAJuego(Action):
         
         latest_entities = tracker.latest_message.get('entities', [])
         juegos = [entity['value'] for entity in latest_entities if entity['entity'] == 'juego']
+        juegos = [capitalize_first_char(item) for item in juegos]
         juego = juegos[-1]
         categorias= devolverCategorias(juego)
         juegosParecidos= devolverJuegos(categorias)
@@ -325,6 +334,9 @@ class ActionDevolverJuegoEnBaseACategoria(Action):
         
         latest_entities = tracker.latest_message.get('entities', [])
         categorias = [entity['value'] for entity in latest_entities if entity['entity'] == 'categoria']
+        categorias = [capitalize_first_char(item) for item in categorias]
+        categorias = list(set(categorias)) #elimino repetidos
+        categorias= categorias[:3]
         juegosParecidos= devolverJuegos(categorias)
         juegosRecomendados= tracker.get_slot("juegos")
         juegosPosibles= [item for item in juegosParecidos if item not in juegosRecomendados]
@@ -368,6 +380,7 @@ class ActionPonerCategorias(Action):
         latest_entities = tracker.latest_message.get('entities', [])
         categoriasEntidades = [entity['value'] for entity in latest_entities if entity['entity'] == 'categoria']
         categoriasEntidades = list(set(categoriasEntidades)) #elimino repetidos
+        categoriasEntidades = [capitalize_first_char(item) for item in categoriasEntidades]
         categoriasActuales= tracker.get_slot("categorias")
         categorias= [item for item in categoriasEntidades if item not in categoriasActuales]
         if categorias:
