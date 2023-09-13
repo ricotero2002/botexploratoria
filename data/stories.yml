@@ -35,8 +35,6 @@ stories:
   steps:
   - checkpoint: recomendo_juego
   - intent: quiere_link_compra
-  - action: action_devolver_link
-  - checkpoint: pidio_link
 
 - story : pide_sinopsis
   steps:
@@ -52,30 +50,9 @@ stories:
   - action: action_devolver_categorias
   - checkpoint: pidio_info_extra
 
-- story : pide_sinopsis_extra
-  steps:
-  - checkpoint: pidio_info_extra
-  - intent: quiere_sinopsis
-  - action: action_devolver_sinopsis
-  - checkpoint: pidio_info_extra
-
-- story : pide_sus_categorias_extra
-  steps:
-  - checkpoint: pidio_info_extra
-  - intent: quiere_categorias
-  - action: action_devolver_categorias
-  - checkpoint: pidio_info_extra
-
 - story : pide_juego_parecido_info
   steps:
   - checkpoint: pidio_info_extra
-  - intent: quiere_juego_parecido
-  - action: action_devolver_juego_parecido
-  - checkpoint: recomendo_juego
-
-- story : pide_juego_parecido_info_link
-  steps:
-  - checkpoint: pidio_link
   - intent: quiere_juego_parecido
   - action: action_devolver_juego_parecido
   - checkpoint: recomendo_juego
@@ -109,4 +86,3 @@ stories:
   - checkpoint: gusto_el_juego
   - intent: quiere_link_compra
   - action: action_devolver_link
-  - checkpoint: pidio_link
