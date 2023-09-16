@@ -1,5 +1,53 @@
 version: "3.1"
 nlu:
+- intent: recomendame_un_juego_random
+  examples: |
+    - recomendame un juego diferente
+    - recomendame un juego random
+    - quiero que me recomiendes un juego diferente
+    - quiero que me recomiendes un juego random
+    - me recomendas un juego random?
+    - me gustaria que me recomiendes un juego muy random
+    - quiero que me recomiendes un juego raro
+    - quiero que me recomiendes un juego como para probar algo diferente
+    - quiero que me recomiendes un juego diferente a los que me gustan
+    - recomendame un juego que no sea parecido a los que me gustan
+    - me podes recomendar otro juego?
+- intent: agradecio
+  examples: |
+    - bien ahi pa gracias
+    - bien ahi 
+    - gracias
+    - muchas gracias
+    - sos un genio
+    - maquinaa
+    - idolo
+    - gracias maestro
+    - muchas gracias crack
+    - impresionante lo tuyo
+    - bien gracias
+    - bien muchas gracias
+- intent: LuisLuis
+  examples: |
+    - Luis Luis
+    - que onda Luis Luis
+    - luis luis
+    - que onda luis luis
+    - luis Luis
+    - Luis luis
+    - como va luis luis
+    - como va Luis Luis
+    - que onda luis luis
+    - vos sos luis luis?
+- intent: LuLu
+  examples: |
+    - LuLu
+    - lulu
+    - LULU
+    - que onda lulu
+    - te puedo llamar lulu?
+    - que onda LuLu
+    - te puedo llamar LuLu?
 - intent: recomendame_un_juego
   examples: |
     - quiero que me recomiendes un juego
@@ -12,6 +60,11 @@ nlu:
     - que juego me recomendas?
     - que juego me recomendarias?
     - que juego seria para mi?
+    - me recomendas un juego?
+    - quiero que me digas un juego para viciar
+    - tirame algun juego
+    - me poder decir un juego por favor?
+    - que juego decis que me gustaria?
 - intent: goodbye
   examples: |
     - chau
@@ -20,14 +73,6 @@ nlu:
     - saludos
     - saludooos
     - bye
-    - que te vaya todo bien
-    - que te diviertas
-    - espero haberte ayudado
-    - suerte
-    - que tengas suerte
-    - anda por la sombra
-    - un placer todo
-    - un placer
     - salute
     - hasta la proxima
     - adiós
@@ -36,27 +81,7 @@ nlu:
     - que tengas un buen día
     - hasta la vista
     - nos hablamos luego
-    - nos leemos pronto
-    - hasta más tarde
-    - que todo te vaya bien
-    - que te cuides mucho
     - hasta mañana
-    - nos encontramos después
-    - te deseo lo mejor
-    - hasta otro día
-    - que tengas un día genial
-    - que te diviertas mucho
-    - hasta pronto, amigo/a
-    - cuídate y hasta la próxima
-    - que tengas un día maravilloso
-    - nos vemos en la próxima ocasión
-    - que tus planes se cumplan
-    - hasta la próxima vez
-    - que la pases excelente
-    - hasta luego, compañero/a
-    - que todo te salga como esperas
-    - nos reencontramos pronto
-    - que encuentres alegría en tu día
 - intent: le_gustan_otro_tipo
   examples: |
     - me gustan otro tipo de juegos
@@ -69,6 +94,7 @@ nlu:
     - estaria para otra onda
     - soy de otra onda
     - soy de otra onda de juegos
+    - soy re de otro palo de juegos
 - intent: no_le_gusto
   examples: |
     - no me gusto el juego
@@ -90,13 +116,22 @@ nlu:
     - malisimo este juego
     - muy malo este juego
     - medio malo este juego
+    - ya lo jugue y no me gusto
+    - ya lo probe no me gusto
+    - ya lo probe y no me gusto
+    - ya lo juegue no me llama la atencion
+    - lo jugue me parecio horrible
+    - ya lo jugue me parecio horrible
+    - ya lo probe me parecio horrible
+    - muy malo el juego
+    - lo odio el juego
 - intent: le_gusto
   examples: |
     - me gusto
     - me gusto el juego
     - me gusta ese juego
     - que buen juego
-    - bunisimo el juego
+    - buenisimo el juego
     - grandicimo juego
     - exelente juego
     - sarpado juego
@@ -113,6 +148,17 @@ nlu:
     - me encanta este juego
     - muy bueno el juego que me recomendaste
     - muy bueno este juego que me recomendaste
+    - ya lo jugue y me gusto
+    - ya lo probe me gusto
+    - ya lo probe y me gusto
+    - ya lo juegue me llama la atencion
+    - ya lo jugue me encanto
+    - ya lo jugue me parecio impresionante
+    - ya lo jugue me fascino
+    - me encanta
+    - amo este juego
+    - ame este juego
+    - amo
 - intent: quiere_juego_parecido
   examples: |
     - quiero que me digas juegos parecidos
@@ -140,6 +186,10 @@ nlu:
     - me encantaria un juego parecido a este
     - me dirias algun juego parecido?
     - me dirias algun juego parecido a este?
+    - recomendame algun juego parecido a este
+    - recomendame un juego como este
+    - me podes recomendar otro juego parecido?
+    - me podes recomendar un juego parecido a este?
 - intent: quiere_categorias
   examples: |
     - quiero que me digas sus categorias
@@ -190,6 +240,14 @@ nlu:
     - esta para comprarlo
     - quiero comprarlo
     - me gustaria comprarlo
+    - donde puedo comprarlo?
+    - me decis donde puedo comprarlo?
+    - sabes donde puedo comprarlo?
+    - donde lo puedo descargar?
+    - me gustaria descargarlo
+    - sabes donde lo puedo descargar?
+    - me decis donde lo puedo descargar?
+    - quiero que me digas donde lo puedo descargar?
 - intent: quiere_sinopsis
   examples: |
     - quiero la sinopsis de ese juego
@@ -210,12 +268,20 @@ nlu:
     - me decis mas o menos de que trata el juego
     - quiero saber de que va el juego
     - quisiera saber como funciona el juego
+    - decime de que trata el juego
+    - quiero saber de que trata el juego
+    - me podes decir de que trata el juego?
+    - me decis de que trata el juego?
+    - me podrias decir de que trata el juego?
+    - me podrias decir de que trata?
+    - de que trata?
 - intent: inicioSesion
   examples: |
     - iniciarSesion
     - iniciar Sesion
     - inicsesion
     - inicioSesion
+    - /start
 - intent: recomendame_un_juego_en_base_a_juego
   examples: |
     - recomendame un juego en base al juego [Minecraft](juego)
@@ -271,6 +337,26 @@ nlu:
     - quiero un juego parecido a [Cuphead](juego)
     - quiero un juego parecido a [Children of Morta](juego)
     - quiero que me recomiendes un juego parecido a [Dark Souls][{"entity": "juego"}
+    - me gusta el juego [Stray](juego), me recomendas uno parecido?
+    - me gusta el juego [The Walking Dead](juego), me recomendas un juego parecido?
+    - me gusta el juego [Ori and the Will of the Wisps](juego), me recomendas un juego tipo ese?
+    - soy fanatico del juego [Capybara Spa](juego), me recomendas uno parecido?
+    - soy fanatico del juego [Devil May Cry 5](juego), me recomendas un juego parecido?
+    - soy fanatico del juego [Crypt of the NecroDancer](juego), me recomendas un juego tipo ese?
+    - amo el juego [My Friend Pedro](juego), me recomendas uno parecido?
+    - amo el juego [DRAGON BALL Z KAKAROT](juego), me recomendas un juego parecido?
+    - amo el juego [Clash Artifacts of Chaos](juego), me recomendas un juego tipo ese?
+    - me encanta el juego [Strayed Lights](juego), me recomendas uno parecido?
+    - me encanta el juego [Wizard with a Gun](juego), me recomendas un juego parecido?
+    - me encanta el juego [Wu Long Fallen Dynasty](juego), me recomendas un juego tipo ese?
+    - me recomendas un juego parecido a [Haven](juego)?
+    - me recomendarias algun juego parecido a [Not For Broadcast](juego)?
+    - me recomendas un juego como [Clash Artifacts of Chaos](juego)?
+    - me recomendarias un juego como [Deaths Door](juego)?
+    - tenes un juego parecido a [Strayed Lights](juego) para recomendarme?
+    - tenes un juego como [Darksiders III](juego) para recomendarme?
+    - tenes algun juego parecido a [The Knight Witch](juego) para recomendarme?
+    - tenes algun juego como [Forspoken](juego) para recomendarme?
 - intent: recomendame_un_juego_en_base_a_categoria
   examples: |
     - recomendame un juego en base a la categoria [Puzles](categoria)
@@ -306,6 +392,46 @@ nlu:
     - recomendame un juego de [Estrategia](categoria)
     - recomendame un juego de [Plataformas](categoria)
     - quiero que me recomiendes un juego de la categorria [Puzle](categoria)
+    - me gustan los juegos de [Terror](categoria), me recomendas alguno?
+    - me gustan los juegos de [Indies](categoria), me recomendas alguno?
+    - me gustan los juegos de [RPG](categoria), me recomendas alguno?
+    - me gustan los juegos de [Estrategia](categoria), me recomendas alguno?
+    - me gustan los juegos de [Shooter](categoria) y [Supervivencia](categoria), me recomendas alguno?
+    - me gustan los juegos de [Gestion](categoria) [Survival Horror](categoria) y [Lucha](categoria), me recomendas alguno?
+    - me gustan los juegos de tipo [Terror](categoria), me recomendas alguno?
+    - me gustan los juegos de tipo [Indies](categoria), me recomendas alguno?
+    - me gustan los juegos de tipo [RPG](categoria), me recomendas alguno?
+    - me gustan los juegos de tipo [Estrategia](categoria), me recomendas alguno?
+    - me gustan los juegos de tipo [Shooter](categoria) y [Supervivencia](categoria), me recomendas alguno?
+    - me gustan los juegos de tipo [Gestion](categoria) [Survival Horror](categoria) y [Lucha](categoria), me recomendas alguno?
+    - me gustan los juegos de la categoria [Terror](categoria), me recomendas alguno?
+    - me gustan los juegos de la categoria [Indies](categoria), me recomendas alguno?
+    - me gustan los juegos de la categoria [RPG](categoria), me recomendas alguno?
+    - me gustan los juegos de la categoria [Estrategia](categoria), me recomendas alguno?
+    - me gustan los juegos de las categorias [Shooter](categoria) y [Supervivencia](categoria), me recomendas alguno?
+    - me gustan los juegos de las categorias [Gestion](categoria) [Survival Horror](categoria) y [Lucha](categoria), me recomendas alguno?
+    - me gustan los juegos de [Terror](categoria), me recomendas un juego asi?
+    - me gustan los juegos de [Indies](categoria), me recomendas de ese genero?
+    - me gustan los juegos de [RPG](categoria), me recomendas un juego de ese genero?
+    - me gustan los juegos de [Estrategia](categoria), me recomendas un juego de esa categoria?
+    - me gustan los juegos de [Shooter](categoria) y [Supervivencia](categoria), me recomendas alguno de esas categorias?
+    - me gustan los juegos de [Shooter](categoria) y [Supervivencia](categoria), me recomendas alguno de esos generos?
+    - me gustan los juegos de [Shooter](categoria) y [Supervivencia](categoria), me recomendas algun juego de esas categorias?
+    - me gustan los juegos de [Shooter](categoria) y [Supervivencia](categoria), me recomendas algun juuego de esos generos?
+    - me gustan los juegos de las categorias [Shooter](categoria) y [Supervivencia](categoria), me recomendas alguno de esas categorias?
+    - me gustan los juegos de las categorias [Shooter](categoria) y [Supervivencia](categoria), me recomendas alguno de esos generos?
+    - me gustan los juegos de las categorias [Shooter](categoria) y [Supervivencia](categoria), me recomendas algun juego de esas categorias?
+    - me gustan los juegos de las categorias [Shooter](categoria) y [Supervivencia](categoria), me recomendas algun juuego de esos generos?
+    - me podrias recomendar algun juego de [Terror](categoria)?
+    - me recomendas algun juego de [Indies](categoria)?
+    - me recomendarias algun juego de [RPG](categoria)?
+    - me podrias recomendar un juego de [Simulacion](categoria)?
+    - tenes algun juego de [Aventura](categoria) para recomendarme?
+    - me podrias recomendar algun juego de [Carreras](categoria) y [Accion](categoria)?
+    - me recomendas algun juego de [Plataformas](categoria) y [Rogue Like](categoria)?
+    - me recomendarias algun juego de [Shooter](categoria) y [Puzles](categoria)?
+    - me podrias recomendar un juego de [Cartas](categoria) y [Sandbox](categoria)?
+    - tenes algun juego de [Construccion](categoria) y [Pixelados](categoria) para recomendarme?
 - intent: le_gusta_categoria
   examples: |
     - me gusta la categoria [Accion](categoria)
@@ -350,17 +476,21 @@ nlu:
     - la categoria [Puzles](categoria)
     - la categoria [Sandbox](categoria)
     - la categoria [Bullet Hell](categoria)
+    - las categorias [Bullet Hell](categoria) y [Sandbox](categoria)
+    - las categorias [Pixelados](categoria), [Cartas](categoria) y [Exploracion](categoria).
     - no me gusta la categoria [Bullet Hell](categoria)
     - no me gusta la categoria [Deportes](categoria)
     - no me gusta la categoria [Construccion](categoria)
     - no me gusta la categoria [Casuales](categoria)
     - no me gusta la categoria [Ciencia Ficcion](categoria)
     - no me gusta la categoria [Aventura](categoria)
+    - no me gustan las categorias [Puzles](categoria) y [Shooter](categoria)
     - creo que la categoria [Rogue Like](categoria)
     - creo que la categoria [Puzles](categoria)
     - creo que la categoria [Construccion](categoria)
     - creo que la categoria [Plataformas](categoria)
     - creo que la categoria [Exploracion](categoria)
+    - creo que las categorias [Aventura](categoria) y [Ciencia Ficcion](categoria)
 - lookup: juego
   examples: |
     - Dark Souls

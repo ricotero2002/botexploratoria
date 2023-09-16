@@ -15,6 +15,10 @@ intents:
 - recomendame_un_juego
 - recomendame_un_juego_en_base_a_categoria
 - recomendame_un_juego_en_base_a_juego
+- LuLu
+- LuisLuis
+- recomendame_un_juego_random
+- agradecio
 actions:
 - action_poner_categorias
 - action_setear_categorias
@@ -30,9 +34,33 @@ actions:
 - action_devolver_juego_en_base_a_juego
 - utter_goodbye
 - action_session_start
+- action_devolver_juego_random
 responses:
   utter_goodbye:
   - text: nos vemoooo
+    image: "https://i.imgur.com/iehLsUp.jpg"
+  utter_luisluis:
+  - text: yo
+  - text: Yo
+  - text: soy yo
+  utter_lulu:
+  - text: Quien dijo que eramos amigos?
+    image: "https://i.imgur.com/uqnNLhq.jpg"
+  - text: no flashes confianza?
+    image: "https://i.imgur.com/uqnNLhq.jpg"
+  - text: quien carajo queria ser tu amigo?
+    image: "https://i.imgur.com/uqnNLhq.jpg"
+  utter_please_rephrase:
+  - text: perdon, no te entiendo podes repetir lo que dijiste?
+    image: "https://i.imgur.com/712NbYg.jpg"
+  utter_agradecer:
+  - text: de nada amigo.
+    image: "https://i.imgur.com/hTPMuml.jpg"
+  - text: de nada genio.
+    image: "https://i.imgur.com/hTPMuml.jpg"
+  - text: por nada.
+    image: "https://i.imgur.com/hTPMuml.jpg"
+      
 entities:
 - categoria
 - juego

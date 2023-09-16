@@ -18,6 +18,30 @@ from rasa_sdk.events import SlotSet, SessionStarted, ActionExecuted, EventType
 from swiplserver import PrologMQI
 import random
 
+def ExisteJuego(Juego) -> List[Text]:
+    Juego=f"'{Juego}'"
+    with PrologMQI(port=8000) as mqi:
+        with mqi.create_thread() as prolog_thread:
+            prolog_thread.query("consult('C:/Users/AGUSTIN/Documents/BotExploratoria/actions/juegos.pl')")
+            result = prolog_thread.query(f"exist_juego({Juego}, Resultado)")
+            lista = result[0]["Resultado"]
+            print(result)
+            # Convert the Prolog result to a Python list
+            #result_list = [str(term) for term in result.("Resultado")]
+    return lista
+
+def ExisteCategoria(Categoria) -> List[Text]:
+    Categoria=f'"{Categoria}"'
+    with PrologMQI(port=8000) as mqi:
+        with mqi.create_thread() as prolog_thread:
+            prolog_thread.query("consult('C:/Users/AGUSTIN/Documents/BotExploratoria/actions/juegos.pl')")
+            result = prolog_thread.query(f"element_exists({Categoria}, Resultado)")
+            lista = result[0]["Resultado"]
+            print(result)
+            # Convert the Prolog result to a Python list
+            #result_list = [str(term) for term in result.("Resultado")]
+    return lista
+
 def devolverJuegos(categorias) -> List[Text]:
     # Convert Python list to Prolog list format, e.g., "[categoria1, categoria2, ...]"
     if not categorias:
@@ -107,9 +131,10 @@ class ActionPrimerJuego(Action):
         respuesta = devolverJuegos(categorias)
         juego= random.choice(respuesta)
         imagen= devolverImagenes(juego)
-        message = f"Hola, soy luis luis, para empezar te recomiendo el siguiente juego: {juego}, te gusta?"
+        message = f"Hola, soy Luis Luis, mis amigos me llaman LuLu, para empezar te recomiendo el siguiente juego: {juego}"
         dispatcher.utter_message(text=message)
-        image_path = os.path.join("C:\\Users\\AGUSTIN\\Documents\\BotExploratoria\\Imagenes", imagen)
+        image_path = f"{imagen}"
+        print(image_path)
         dispatcher.utter_message(image=image_path)
         juegos= []
         juegos.append(juego)
@@ -127,11 +152,12 @@ class ActionDevolverJuego(Action):
         juegos= tracker.get_slot("juegos")
         diferentesResultados= [item for item in respuesta if item not in juegos]
         juego=None
+        image_path=None
         if diferentesResultados:
             juego= random.choice(diferentesResultados)
             imagen= devolverImagenes(juego)
-            message = f"Entonces te puedo recomendar el siguiente juego: {juego}"
-            image_path = os.path.join("C:\\Users\\AGUSTIN\\Documents\\BotExploratoria\\Imagenes", imagen)
+            message = f"Entonces te puedo recomendar el siguiente juego: {juego},"
+            image_path = f"{imagen}"
         else:
             categoriasIgnoradas= []
             while not diferentesResultados and categorias:     
@@ -144,14 +170,16 @@ class ActionDevolverJuego(Action):
                 imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
                 juego= random.choice(diferentesResultados)
                 imagen= devolverImagenes(juego)
-                image_path = os.path.join("C:\\Users\\AGUSTIN\\Documents\\BotExploratoria\\Imagenes", imagen)
+                image_path = f"{imagen}"
                 message = f"no tengo mas juego de los que te gustan a vos, tuve que ignorar las siguientes categorias: {imprimir}, que tal este para cambiar un poco: {juego}"
             else:
                 message = f"ya te recomende todos los juegos flaquito juga alguno"
 
         dispatcher.utter_message(text=message)
-        dispatcher.utter_message(image=image_path)
-        juegos.append(juego)
+        if image_path:
+            dispatcher.utter_message(image=image_path)
+        if juego:
+            juegos.append(juego)
 
         return [SlotSet("juegos", juegos)]
    
@@ -210,11 +238,12 @@ class ActionDevolverJuegoParecido(Action):
         juegosParecidos= devolverJuegos(categorias)
         diferentesResultados= [item for item in juegosParecidos if item not in juegosRecomendados]
         juego=None
+        image_path=None
         if diferentesResultados:
             juego= random.choice(diferentesResultados)
             imagen= devolverImagenes(juego)
             message = f"Entonces te puedo recomendar el siguiente juego que es parecido a {juegoAnterior}: {juego}"
-            image_path = os.path.join("C:\\Users\\AGUSTIN\\Documents\\BotExploratoria\\Imagenes", imagen)
+            image_path = f"{imagen}"
         else:
             categoriasIgnoradas= []
             while not diferentesResultados and categorias:     
@@ -227,14 +256,16 @@ class ActionDevolverJuegoParecido(Action):
                 imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
                 juego= random.choice(diferentesResultados)
                 imagen= devolverImagenes(juego)
-                image_path = os.path.join("C:\\Users\\AGUSTIN\\Documents\\BotExploratoria\\Imagenes", imagen)
+                image_path = f"{imagen}"
                 message = f"no tengo mas juegos parecidos a {juegoAnterior}, tuve que ignorar las siguientes categorias: {imprimir}, que tal este para cambiar un poco: {juego}"
             else:
                 message = f"ya te recomende todos los juegos flaquito juga alguno"
 
         dispatcher.utter_message(text=message)
-        dispatcher.utter_message(image=image_path)
-        juegosRecomendados.append(juego)
+        if image_path:
+            dispatcher.utter_message(image=image_path)
+        if juego:
+            juegosRecomendados.append(juego)
         return [SlotSet("juegos", juegosRecomendados)]
 
 class ActionSetearCategorias(Action):
@@ -275,10 +306,17 @@ class ActionBorrarCategorias(Action):
         # Filter the entities based on the entity name
         categoriasNoLeGustan = [entity['value'] for entity in latest_entities if entity['entity'] == 'categoria']
         categoriasNoLeGustan = [capitalize_first_char(item) for item in categoriasNoLeGustan]
+        for valor in categoriasNoLeGustan: #reviso que las categorias existan
+            resultado= ExisteCategoria(valor)
+            if resultado != "true":
+                categoriasNoLeGustan.remove(valor)
         categoriasActuales= tracker.get_slot("categorias")
         categorias= [item for item in categoriasActuales if item not in categoriasNoLeGustan]
-        imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasNoLeGustan])
-        message = f"entonces las categorias que no te gustan son las siguientes: {imprimir}, lo voy a tener en cuenta"
+        if categoriasNoLeGustan:
+            imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasNoLeGustan])
+            message = f"entonces las categorias que no te gustan son las siguientes: {imprimir}, lo voy a tener en cuenta"
+        else:
+            message = f"gracias por la data pero igual no conosco esas categorias jejeje"
         dispatcher.utter_message(text=message)
         return [SlotSet("categorias", categorias)]
     
@@ -292,38 +330,52 @@ class ActionDevolverJuegoEnBaseAJuego(Action):
         latest_entities = tracker.latest_message.get('entities', [])
         juegos = [entity['value'] for entity in latest_entities if entity['entity'] == 'juego']
         juegos = [capitalize_first_char(item) for item in juegos]
-        juego = juegos[-1]
-        categorias= devolverCategorias(juego)
-        juegosParecidos= devolverJuegos(categorias)
         juegosRecomendados= tracker.get_slot("juegos")
-        juegosPosibles= [item for item in juegosParecidos if item not in juegosRecomendados]
-        juegoADecir=None
-        if juegosPosibles:
-            juegoADecir= random.choice(juegosPosibles)
-            imagen= devolverImagenes(juegoADecir)
-            message = f"Entonces te puedo recomendar el siguiente juego: {juegoADecir}, debido a su parecido con: {juego}"
-            image_path = os.path.join("C:\\Users\\AGUSTIN\\Documents\\BotExploratoria\\Imagenes", imagen)
-        else:
-            categoriasIgnoradas= []
-            while not juegosPosibles and categorias:     
-                last_element = categorias[-1]  # Get the last element
-                categoriasIgnoradas.append(last_element)
-                categorias.pop()  # Remove the last element from the list
-                respuesta = devolverJuegos(categorias)
-                juegosPosibles= [item for item in respuesta if item not in juegosRecomendados]
+        juegosRecomendados = [capitalize_first_char(item) for item in juegosRecomendados]
+        for valor in juegos: #reviso que las categorias existan
+            resultado= ExisteJuego(valor)
+            if resultado != "true":
+                juegos.remove(valor)
+        image_path=None
+        if juegos:
+            juego = juegos[-1]
+            juegoBase=juego
+            juegosRecomendados.append(juegoBase)
+            categorias= devolverCategorias(juego)
+            juegosParecidos= devolverJuegos(categorias)
+            juegosPosibles= [item for item in juegosParecidos if item not in juegosRecomendados]
+            juegoADecir=None
             if juegosPosibles:
-                imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
-                juego= random.choice(juegosPosibles)
-                imagen= devolverImagenes(juego)
-                image_path = os.path.join("C:\\Users\\AGUSTIN\\Documents\\BotExploratoria\\Imagenes", imagen)
-                message = f"no tengo mas juegos parecidos a {juego}, tuve que ignorar las siguientes categorias: {imprimir}, que tal este para cambiar un poco: {juego}"
+                juegoADecir= random.choice(juegosPosibles)
+                imagen= devolverImagenes(juegoADecir)
+                message = f"Entonces te puedo recomendar el siguiente juego: {juegoADecir}, debido a su parecido con: {juego}"
+                image_path = f"{imagen}"
             else:
-                message = f"ya te recomende todos los juegos flaquito juga alguno"
-            
+                categoriasIgnoradas= []
+                while not juegosPosibles and categorias:     
+                    last_element = categorias[-1]  # Get the last element
+                    categoriasIgnoradas.append(last_element)
+                    categorias.pop()  # Remove the last element from the list
+                    respuesta = devolverJuegos(categorias)
+                    juegosPosibles= [item for item in respuesta if item not in juegosRecomendados]
+                if juegosPosibles:
+                    imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
+                    juego= random.choice(juegosPosibles)
+                    imagen= devolverImagenes(juego)
+                    image_path = f"{imagen}"
+                    message = f"no tengo mas juegos parecidos a {juegoBase}, tuve que ignorar las siguientes categorias: {imprimir}, que tal este para cambiar un poco: {juego}"
+                else:
+                    message = f"ya te recomende todos los juegos flaquito juga alguno"
+            juegosRecomendados.append(juegoADecir)
+            juegosRecomendados.remove(juegoBase)
+        else:
+            message = f"Disculpa no conosco este juego"
+
         dispatcher.utter_message(text=message)
-        dispatcher.utter_message(image=image_path)
-        juegosRecomendados.append(juegoADecir)
+        if image_path:
+            dispatcher.utter_message(image=image_path)
         return [SlotSet("juegos", juegosRecomendados)]
+
     
 class ActionDevolverJuegoEnBaseACategoria(Action):
     def name(self) -> Text:
@@ -336,38 +388,49 @@ class ActionDevolverJuegoEnBaseACategoria(Action):
         categorias = [entity['value'] for entity in latest_entities if entity['entity'] == 'categoria']
         categorias = [capitalize_first_char(item) for item in categorias]
         categorias = list(set(categorias)) #elimino repetidos
-        categorias= categorias[:3]
-        juegosParecidos= devolverJuegos(categorias)
+        for valor in categorias: #reviso que las categorias existan
+            resultado= ExisteCategoria(valor)
+            if resultado != "true":
+                categorias.remove(valor)
+        image_path=None
+        juegoADecir= None
         juegosRecomendados= tracker.get_slot("juegos")
-        juegosPosibles= [item for item in juegosParecidos if item not in juegosRecomendados]
-        juegoADecir=None
-        if juegosPosibles:
-            Categoriasimprimir = ", ".join([f'"{categoria}"' for categoria in categorias])
-            juegoADecir= random.choice(juegosPosibles)
-            imagen= devolverImagenes(juegoADecir)
-            message = f"Entonces te puedo recomendar el siguiente juego: {juegoADecir}, debido a las categorias{Categoriasimprimir}"
-            image_path = os.path.join("C:\\Users\\AGUSTIN\\Documents\\BotExploratoria\\Imagenes", imagen)
-        else:
-            categoriasIgnoradas= []
-            while not juegosPosibles and categorias:  
-                last_element = categorias[-1]  # Get the last element
-                categoriasIgnoradas.append(last_element)
-                categorias.pop()  # Remove the last element from the list
-                respuesta = devolverJuegos(categorias)
-                juegosPosibles= [item for item in respuesta if item not in juegosRecomendados]
+        if categorias:
+            categorias= categorias[:3] #limito categorias a 3
+            juegosParecidos= devolverJuegos(categorias)
+            juegosPosibles= [item for item in juegosParecidos if item not in juegosRecomendados]
+            juegoADecir=None
             if juegosPosibles:
-                CategoriasBorradas = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
-                CategoriasUsadas = ", ".join([f'"{categoria}"' for categoria in categorias])
+                Categoriasimprimir = ", ".join([f'"{categoria}"' for categoria in categorias])
                 juegoADecir= random.choice(juegosPosibles)
                 imagen= devolverImagenes(juegoADecir)
-                image_path = os.path.join("C:\\Users\\AGUSTIN\\Documents\\BotExploratoria\\Imagenes", imagen)
-                message = f"no tengo mas con las categorias {CategoriasBorradas}, por lo que tome en cuenta las siguientes:{CategoriasUsadas} y te recomiendo en su lugar: {juegoADecir}"
+                message = f"Entonces te puedo recomendar el siguiente juego: {juegoADecir}, debido a las categorias{Categoriasimprimir}"
+                image_path = f"{imagen}"
             else:
-                message = f"ya te recomende todos los juegos flaquito juga alguno"
+                categoriasIgnoradas= []
+                while not juegosPosibles and categorias:  
+                    last_element = categorias[-1]  # Get the last element
+                    categoriasIgnoradas.append(last_element)
+                    categorias.pop()  # Remove the last element from the list
+                    respuesta = devolverJuegos(categorias)
+                    juegosPosibles= [item for item in respuesta if item not in juegosRecomendados]
+                if juegosPosibles:
+                    CategoriasBorradas = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
+                    CategoriasUsadas = ", ".join([f'"{categoria}"' for categoria in categorias])
+                    juegoADecir= random.choice(juegosPosibles)
+                    imagen= devolverImagenes(juegoADecir)
+                    image_path = f"{imagen}"
+                    message = f"no tengo mas con las categorias {CategoriasBorradas}, por lo que tome en cuenta las siguientes:{CategoriasUsadas} y te recomiendo en su lugar: {juegoADecir}"
+                else:
+                    message = f"ya te recomende todos los juegos flaquito juga alguno"
+        else:
+            message = f"Disculpa no conosco esa categoria"
 
         dispatcher.utter_message(text=message)
-        dispatcher.utter_message(image=image_path)
-        juegosRecomendados.append(juegoADecir)
+        if image_path: 
+            dispatcher.utter_message(image=image_path)
+        if juegoADecir:
+            juegosRecomendados.append(juegoADecir)
         return [SlotSet("juegos", juegosRecomendados)]
 
 class ActionPonerCategorias(Action):
@@ -382,28 +445,63 @@ class ActionPonerCategorias(Action):
         categoriasEntidades = list(set(categoriasEntidades)) #elimino repetidos
         categoriasEntidades = [capitalize_first_char(item) for item in categoriasEntidades]
         categoriasActuales= tracker.get_slot("categorias")
+        for valor in categoriasEntidades:
+            resultado= ExisteCategoria(valor)
+            if resultado != "true":
+                categoriasEntidades.remove(valor)
         categorias= [item for item in categoriasEntidades if item not in categoriasActuales]
         if categorias:
             tamanioActuales=len(categoriasActuales)
             tamanioDif=len(categorias)
             if tamanioDif >3:
                 tamanioDif=3
-            if tamanioActuales != 3 :
-                tamanioActuales = tamanioActuales + 1
-            #primero saco las categorias distintas y despues las voy agregando desde atras para adelante(considerando mas importante las primeras)
+            indice=tamanioDif + tamanioActuales
+            if indice > 3:
+                indice=3
+            while len(categoriasActuales) < indice: #pongo elementos vacios para poder hacer categoriasaActuales[i]
+                categoriasActuales.append(None)
             print(tamanioActuales)
             print(tamanioDif)
             print(categoriasActuales)
             print(categorias)
-            for i in range(tamanioActuales-1, tamanioActuales - tamanioDif -1, -1):
-                print(i)
-                print(tamanioDif - (tamanioActuales - i))
-                categoriasActuales[i] = categorias[tamanioDif - (tamanioActuales - i)]
+
+            while (indice != 0) and (tamanioDif != 0):
+                indice -= 1
+                tamanioDif -= 1
+                print(indice)
+                print(tamanioDif)
+                categoriasActuales[indice] = categorias[tamanioDif]
+            message = f"voy a tener encuenta que te gustan esas categorias entonces"
+        else:
+            message = f"Disculpa no conosco esa categoria o ya se que te gusta nose una de 2"
         print(categoriasEntidades)
-        print(categoriasActuales)
-        message = f"voy a tener encuenta que te gustan esas categorias entonces"
-            
+        print(categoriasActuales)            
         dispatcher.utter_message(text=message)
         return [SlotSet("categorias", categoriasActuales)]
 
-    
+class ActionDevolverJuegoRandom(Action):
+    def name(self) -> Text:
+        return "action_devolver_juego_random"
+    def run(
+      self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
+    ) -> List[Dict[Text, Any]]:
+        respuesta = devolverJuegos([])
+        juegos= tracker.get_slot("juegos")
+        diferentesResultados= [item for item in respuesta if item not in juegos]
+        juego=None
+        image_path=None
+        if diferentesResultados:
+            juego= random.choice(diferentesResultados)
+            imagen= devolverImagenes(juego)
+            message = f"Entonces te puedo recomendar el siguiente juego: {juego}"
+            image_path = f"{imagen}"
+        else:
+            message = f"ya te recomende todos los juegos flaquito juga alguno"
+
+        dispatcher.utter_message(text=message)
+        if image_path:
+            dispatcher.utter_message(image=image_path)
+        if juego:
+            juegos.append(juego)
+
+        return [SlotSet("juegos", juegos)]

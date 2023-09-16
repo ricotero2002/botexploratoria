@@ -14,6 +14,12 @@ stories:
   - action: action_devolver_juego
   - checkpoint: recomendo_juego
 
+- story : recomiendo_un_juego_random
+  steps:
+  - intent: recomendame_un_juego_random
+  - action: action_devolver_juego_random
+  - checkpoint: recomendo_juego
+
 - story : recomiendo_un_juego_en_base_a_juego
   steps:
   - intent: recomendame_un_juego_en_base_a_juego
@@ -35,6 +41,7 @@ stories:
   steps:
   - checkpoint: recomendo_juego
   - intent: quiere_link_compra
+  - action: action_devolver_link
 
 - story : pide_sinopsis
   steps:
@@ -86,3 +93,23 @@ stories:
   - checkpoint: gusto_el_juego
   - intent: quiere_link_compra
   - action: action_devolver_link
+
+- story : sayluisluis
+  steps:
+  - intent: LuisLuis
+  - action: utter_luisluis
+
+- story : saylulu
+  steps:
+  - intent: LuLu
+  - action: utter_lulu
+
+- story : agradecio
+  steps:
+  - intent: agradecio
+  - action: utter_agradecer
+
+- story: Say goodbye anytime the user says goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
