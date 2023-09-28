@@ -1,0 +1,6 @@
+el bot esta en documentos
+
+primero conda activate bot_exploratoria
+rasa 
+para server rasa run
+y en ngrook ngrok http 5005

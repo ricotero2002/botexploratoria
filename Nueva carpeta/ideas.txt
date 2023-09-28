@@ -1,0 +1,47 @@
+//agregar que si le gusta un juego te permita pedir un link de compra
+//al mostrar un juego mostrar fotos y o si lo pide nose 
+quier que me recomiendes un juego como el ultimo o parecido al anterior 
+agregar links de steam, mas juegos y sacar los que no son de steam en prolog
+//ver como hacer lo de las fotos
+/bot da juego
+/usuario puede pedir mas parecidos o mas diferentes
+/puede pedir link de compra
+/puede pedir descripcion
+/puede pedir las categorias
+//Pedir un juego random.
+//EN ME GUSTO PONER TAMBIEN QUE ME INTERESO EL JUEGO
+//(DE ME GUSTO/LINK COMPRA/SINOPSIS O CATEGORIA) A PIDE JUEGO PARECIDO
+//agregar ya lo jugue me gusto o no(despues de que te recomiendo un juego)
+//hola soy luis luis mis amigos de me dicen LULU, si user dice luis luis, contesta yo y si dice lulu decir quien
+dijo que somos amigos
+//SI DIGO RECOMENDAME EN BASE A UNA CATEGORIA O JUEGO O ME GUSTA CAT
+Y ESTA NO EXISTE AVISAR
+//SI PIDO RECOMENDAME JUEGO PARECIDO QUE  NO SEA EL MISMO
+//telegram
+	username/verify:
+	LuisLuisAgustinFreireGames_bot
+	url: localhost:5055/
+	http://0.0.0.0:5055/webhooks/telegram/webhook
+	access_token
+	6373800096:AAHUTTQ_amlgE3kIktH4i8_00lNVl4Av9WU
+// funcion que te diga las categorias registraradas
+//poner palabras clave en los juegos tipo que haya disparos o carpinchos
+//desarroladora
+//terminado        -por hacer
+
+-Guardar los juegos que le gustaron y los que no ademas de para lo de las categorias para el perfil
+al terminar podria ver las categorias que mas le gustaron y las que mas no de todas las de esa sesion
+para mejorar el perfil y ver que categorias cargar la iniciar.
+-AGREGAR INTENT ME GUSTA EL JUEGO X
+--guardar data del perfil del usuario
+-primer recomendar que use los juegos que le gustan al usuario y si no le gusta o no le llama la atencion puedo
+suponer que esta triste o algo asi
+-porque no anda el /start
+- cuando digo recomenda en base a juego que se pueda poner mas de 1
+- controlar que el primer juego no este en tre los que le gusto o no le gusto
+- hacer que el no me gusta categoria o juego vaya a una lista y a la vez se saquen de las seteadas. y para el le gusta
+- cuando dice que categoria no te gusto poder decir todas
+-preguntar porque le gusto
+-puedo usar el hola para iniciar la sesion
+-decir el nombre del usuario y poder cambiarlo
+- lista de juegosGustaron,JuegosNo y recomendados(union de los 2), traer de archivo

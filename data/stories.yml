@@ -113,3 +113,14 @@ stories:
   steps:
   - intent: goodbye
   - action: utter_goodbye
+  - action: action_guardar_Perfil
+
+- story: devolver las categorias conocidas
+  steps:
+  - intent: quiere_saber_todas_las_categorias
+  - action: action_devolver_todas_las_categorias
+
+- story: cambiar nombre de usuario
+  steps:
+  - intent: cambiar_nombre
+  - action: action_cambiar_nombre

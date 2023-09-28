@@ -19,6 +19,8 @@ intents:
 - LuisLuis
 - recomendame_un_juego_random
 - agradecio
+- quiere_saber_todas_las_categorias
+- cambiar_nombre
 actions:
 - action_poner_categorias
 - action_setear_categorias
@@ -35,6 +37,9 @@ actions:
 - utter_goodbye
 - action_session_start
 - action_devolver_juego_random
+- action_devolver_todas_las_categorias
+- action_guardar_Perfil
+- action_cambiar_nombre
 responses:
   utter_goodbye:
   - text: nos vemoooo
@@ -64,6 +69,7 @@ responses:
 entities:
 - categoria
 - juego
+- username
 slots:
   categorias:
     type: any
@@ -74,6 +80,28 @@ slots:
   juegos:
     type: any
     initial_value: []
+    influence_conversation: false
+    mappings:
+    - type: custom
+  juegosGustan:
+    type: any
+    initial_value: []
+    influence_conversation: false
+    mappings:
+    - type: custom
+  juegosNoGustan:
+    type: any
+    initial_value: []
+    influence_conversation: false
+    mappings:
+    - type: custom
+  nombre:
+    type: any
+    influence_conversation: false
+    mappings:
+    - type: custom
+  id:
+    type: any
     influence_conversation: false
     mappings:
     - type: custom

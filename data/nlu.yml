@@ -1,5 +1,19 @@
 version: "3.1"
 nlu:
+- intent: quiere_saber_todas_las_categorias
+  examples: |
+    - me decis las categorias que conoces?
+    - me dirias todas las categorias que conoces?
+    - que categorias me podes recomendar?
+    - que categorias conoces?
+    - me podrias decir todas las categorias que conoces?
+    - che que categorias conoces?
+    - cuales son todas las categorias que conoces?
+    - che cuales son las categorias que conoces?
+    - me tiras las categorias que conoces?
+    - de que categorias te puedo pedir juegos?
+    - de que categorias me podes recomendar juegos=
+    - de que tipos me podes decir juegos?
 - intent: recomendame_un_juego_random
   examples: |
     - recomendame un juego diferente
@@ -282,6 +296,16 @@ nlu:
     - inicsesion
     - inicioSesion
     - /start
+    - hola
+    - holaaa
+    - holiss
+    - ola
+    - holi como estas?
+    - hola luis luis
+    - hola amigo
+    - Hola
+    - Holaaaa
+    - Holiss
 - intent: recomendame_un_juego_en_base_a_juego
   examples: |
     - recomendame un juego en base al juego [Minecraft](juego)
@@ -491,6 +515,24 @@ nlu:
     - creo que la categoria [Plataformas](categoria)
     - creo que la categoria [Exploracion](categoria)
     - creo que las categorias [Aventura](categoria) y [Ciencia Ficcion](categoria)
+
+- intent: cambiar_nombre
+  examples: |
+    - quiero que me llames [Gotoso](username)
+    - prefiero que me digan [Hermosa](username)
+    - no me gusta como me llamas mejor decime [PibeBionico](username)
+    - che me podes cambiar el nombre por [Pibe4](username)
+    - quiero que mejor me llames [Goku](username)
+    - me podes cambiar el nombre a [Benedetto](username)
+    - no me gusta mi nombre de usuario me lo cambias a [Pedilooo](username)
+- regex: username
+  examples: |
+    - boca
+    - agustin
+    - ricotero2002
+    - gianni
+    - pibe 4
+    - aguante boca
 - lookup: juego
   examples: |
     - Dark Souls
@@ -565,7 +607,7 @@ nlu:
     - Cuphead
     - God of War
     - The Forest
-    - DOOM
+    - DOOM 1993
     - Outer Wilds
     - Amnesia The Dark Descent
     - Untitled Goose Game

@@ -11,4 +11,10 @@ rules:
   - intent: inicioSesion
   - action: action_first
 
+- rule: terminarSesion
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+  - action: action_guardar_Perfil
+
 

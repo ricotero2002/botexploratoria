@@ -17,6 +17,8 @@ from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet, SessionStarted, ActionExecuted, EventType
 from swiplserver import PrologMQI
 import random
+import pandas as pd
+import ast
 
 def ExisteJuego(Juego) -> List[Text]:
     Juego=f"'{Juego}'"
@@ -71,6 +73,30 @@ def devolverCategorias(juego) -> List[Text]:
             print(lista)
     return lista
 
+def devolverPal_Claves(juego) -> List[Text]:
+    quoted_word = f"'{juego}'"
+    with PrologMQI(port=8000) as mqi:
+        with mqi.create_thread() as prolog_thread:
+            prolog_thread.query("consult('C:/Users/AGUSTIN/Documents/BotExploratoria/actions/juegos.pl')")
+            result = prolog_thread.query(f"recuperar_Pal_Claves({quoted_word}, Resultado)")
+            print("Resultado: ")
+            print(result)
+            lista = result[0]["Resultado"]
+            print(lista)
+    return lista
+
+def devolverDesarroladores(juego) -> Text:
+    quoted_word = f"'{juego}'"
+    with PrologMQI(port=8000) as mqi:
+        with mqi.create_thread() as prolog_thread:
+            prolog_thread.query("consult('C:/Users/AGUSTIN/Documents/BotExploratoria/actions/juegos.pl')")
+            result = prolog_thread.query(f"recuperar_Desarrolador({quoted_word}, Resultado)")
+            print("Resultado: ")
+            print(result)
+            lista = result[0]["Resultado"]
+            print(lista)
+    return lista
+
 def devolverImagenes(juego) -> Text:
     quoted_word = f"'{juego}'"
     with PrologMQI(port=8000) as mqi:
@@ -112,6 +138,17 @@ def capitalize_first_char(text):
     capitalized_words = [word.capitalize() for word in words]
     return ' '.join(capitalized_words)
 
+def devolverTodasLasCategorias() -> List[Text]:
+    with PrologMQI(port=8000) as mqi:
+        with mqi.create_thread() as prolog_thread:
+            prolog_thread.query("consult('C:/Users/AGUSTIN/Documents/BotExploratoria/actions/juegos.pl')")
+            result = prolog_thread.query(f"recuperar_todas_las_categorias(Resultado)")
+            print("Resultado: ")
+            print(result)
+            lista = result[0]["Resultado"]
+            print(lista)
+    return lista
+
 class ActionSessionStart(Action):
     def name(self) -> Text:
         return "action_session_start"
@@ -127,19 +164,55 @@ class ActionPrimerJuego(Action):
     async def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        categorias = []
+        input_data=tracker.latest_message
+        user_name=input_data["metadata"]["message"]["from"]["first_name"]
+        Id=input_data["metadata"]["message"]["from"]["id"]
+        ############ cargar perfil
+        texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+        print(texto)
+        fila = texto[texto['ID'] == Id]
+        if not fila.empty: #tengo que cargar los slots
+            print('Existia Valor')
+            id_valor = fila['ID'].values[0]
+            nombre_valor = fila['Nombre'].values[0]
+            JuegosGustan_valor = ast.literal_eval(fila['JuegosGustan'].values[0])
+            JuegosNoGustan_valor = ast.literal_eval(fila['JuegosNoGustan'].values[0])
+            Categ_Gustan_valor = ast.literal_eval(fila['Categ_Gustan'].values[0])
+            Categ_No_Gustan_valor = ast.literal_eval(fila['Categ_No_Gustan'].values[0])
+            categorias = ast.literal_eval(fila['Categorias'].values[0])
+            print(id_valor)
+            print(nombre_valor)
+            print(JuegosGustan_valor)
+            print(JuegosNoGustan_valor)
+            print(Categ_Gustan_valor)
+            print(Categ_No_Gustan_valor)
+            print(categorias)
+        else: #tengo que crear el perfil
+            print('No existia valor')
+            nueva_fila = pd.DataFrame({'ID': [Id], 'Nombre': [user_name], 'JuegosGustan': [[]], 'JuegosNoGustan': [[]], 'Categ_Gustan': [[]], 'Categ_No_Gustan': [[]], 'Categorias': [[]]})
+            # Concatenate the new row with the existing DataFrame
+            texto = pd.concat([texto, nueva_fila], ignore_index=True)
+            texto.to_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv', sep=';', index=False)
+            JuegosGustan_valor = []
+            JuegosNoGustan_valor = []
+            categorias= []
+        juegos= JuegosGustan_valor + JuegosNoGustan_valor
+        ###################################################################
         respuesta = devolverJuegos(categorias)
         juego= random.choice(respuesta)
         imagen= devolverImagenes(juego)
-        message = f"Hola, soy Luis Luis, mis amigos me llaman LuLu, para empezar te recomiendo el siguiente juego: {juego}"
+        if nombre_valor:
+            nombre= nombre_valor
+        else:
+            nombre=user_name
+        message = f"Hola {nombre}, soy Luis Luis, mis amigos me llaman LuLu, para empezar te recomiendo el siguiente juego: {juego} y acordate que antes de irte te tenes que despedir"
         dispatcher.utter_message(text=message)
         image_path = f"{imagen}"
         print(image_path)
         dispatcher.utter_message(image=image_path)
-        juegos= []
         juegos.append(juego)
 
-        return [SlotSet("juegos", juegos)]
+        return [SlotSet("id", Id), SlotSet("nombre", user_name), SlotSet("juegos", juegos), SlotSet("juegosGustan", JuegosGustan_valor), SlotSet("juegosNoGustan", JuegosNoGustan_valor), SlotSet("categorias", categorias)]
     
 class ActionDevolverJuego(Action):
     def name(self) -> Text:
@@ -277,9 +350,11 @@ class ActionSetearCategorias(Action):
         juegosRecomendados= tracker.get_slot("juegos")
         juegoAnterior= juegosRecomendados[-1]
         categorias= devolverCategorias(juegoAnterior)
+        JuegosGustan= tracker.get_slot("juegosGustan")
+        JuegosGustan.append(juegoAnterior)#juego que le gusto
         message = f"Me alegro que te haya gustado el juego {juegoAnterior}, lo tendre en cuenta entonces"
         dispatcher.utter_message(text=message)
-        return [SlotSet("categorias", categorias)]
+        return [SlotSet("categorias", categorias), SlotSet("juegosGustan", JuegosGustan)] 
 
 class ActionPreguntarCategorias(Action):
     def name(self) -> Text:
@@ -289,11 +364,13 @@ class ActionPreguntarCategorias(Action):
     ) -> List[Dict[Text, Any]]:
         juegosRecomendados= tracker.get_slot("juegos")
         juegoAnterior= juegosRecomendados[-1]
+        JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+        JuegosNoGustan.append(juegoAnterior)#juego que no le gusto
         categorias= devolverCategorias(juegoAnterior)
         imprimir = ", ".join([f'"{categoria}"' for categoria in categorias])
         message = f"cual de las categorias del juego {juegoAnterior} no te gustaron? son las siguientes: {imprimir}"
         dispatcher.utter_message(text=message)
-        return []
+        return [SlotSet("juegosNoGustan", JuegosNoGustan)]
     
 class ActionBorrarCategorias(Action):
     def name(self) -> Text:
@@ -505,3 +582,55 @@ class ActionDevolverJuegoRandom(Action):
             juegos.append(juego)
 
         return [SlotSet("juegos", juegos)]
+
+class ActionDevolverTodasLasCategorias(Action):
+    def name(self) -> Text:
+        return "action_devolver_todas_las_categorias"
+    async def run(
+      self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
+    ) -> List[Dict[Text, Any]]:
+        respuesta = devolverTodasLasCategorias()
+        imprimir = ", ".join([f'"{categoria}"' for categoria in respuesta])
+        message = f"Las categorias que conosco son: {imprimir}"
+        dispatcher.utter_message(text=message)
+        return []
+
+class ActionGuardarPerfil(Action):
+    def name(self) -> Text:
+        return "action_guardar_Perfil"
+    async def run(
+      self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
+    ) -> List[Dict[Text, Any]]:
+        id= tracker.get_slot("id")
+        nombre= tracker.get_slot("nombre")
+        JuegosGustan= tracker.get_slot("juegosGustan")
+        JuegosGustan = list(set(JuegosGustan)) #elimino repetidos
+        JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+        JuegosNoGustan = list(set(JuegosNoGustan)) #elimino repetidos
+        Categorias= tracker.get_slot("categorias")
+        texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+        nueva_fila = {'ID': id, 'Nombre': nombre, 'JuegosGustan': JuegosGustan, 'JuegosNoGustan': JuegosNoGustan, 'Categ_Gustan': [], 'Categ_No_Gustan': [], 'Categorias': Categorias}
+        print(texto)
+        print(id)
+        indice = texto.index[texto['ID'] == id].tolist() # Buscar el indice de la fila con el ID a reemplazar
+        texto.loc[indice[0]] = nueva_fila # Reemplazar la fila en el DataFrame
+        texto.to_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv', sep=';', index=False)     # Guardar el DataFrame actualizado de vuelta al archivo CSV
+        return []
+    
+class ActionCambiarNombre(Action):
+    def name(self) -> Text:
+        return "action_cambiar_nombre"
+    async def run(
+      self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
+    ) -> List[Dict[Text, Any]]:
+        latest_entities = tracker.latest_message.get('entities', [])
+        nuevoNombre = [entity['value'] for entity in latest_entities if entity['entity'] == 'username']
+        if nuevoNombre:
+            nombre=nuevoNombre
+        else:
+            nombre= tracker.get_slot("nombre")
+        message = f"Bueno entonces te voy a llamar {nombre}"
+        dispatcher.utter_message(text=message)
+        return [SlotSet("nombre", nombre)]
+
+
