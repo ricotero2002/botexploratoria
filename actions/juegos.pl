@@ -27,7 +27,7 @@ juego('Children of Morta', ["Rogue Like", "Accion", "Indies"], 'https://store.st
 juego('Graveyard Keeper', ["Indies", "Sandbox", "Gestion"], 'https://store.steampowered.com/app/599140/Graveyard_Keeper/', 'https://i.imgur.com/4B7UP8k.jpg', 'Graveyard Keeper es el simulador de gestion de cementerios medievales mas impreciso de la historia. Construye y gestiona tu propio cementerio mientras encuentras formas de reducir costes, meterte en otras empresas y usar todos los recursos que encuentres.', 'tinyBuild', ["Animales", "Vegetales", "Granja", "Chill", "Tranquilidad", "Cementerio"]).
 juego('Hand of Fate 2', ["Cartas", "Rogue Like", "Indies"], 'https://store.steampowered.com/app/456670/Hand_of_Fate_2/', 'https://i.imgur.com/Zy28Naw.jpg', 'Hand Of Fate 2 es un juego de exploracion de mazmorras ambientado en un mundo de oscura fantasia. Domina un juego de mesa rebosante de vida en el que cada fase de la aventura se saca de una baraja de encuentros legendarios que tu te encargas de elegir.', 'Defiant Development', ["Juego de Mesa", "calabozos y dragones"]).
 juego('Have a Nice Death', ["Rogue Like", "Plataformas", "Accion"], 'https://store.steampowered.com/app/1740720/Have_a_Nice_Death/', 'https://i.imgur.com/EPWMKAO.jpg', 'Have a Nice Death es un roguelike de accion en el que encarnas a una Parca saturada por el trabajo. Sus empleados estan echando por tierra tanto el equilibrio de las almas. Con el fin de recuperar el orden, tendras que servirte de tu guadana para demostrar a los empleados quien manda aqui.', 'Gearbox Publishing', ["Estetico", "Buena Historia", "Humor Negro", "Satiras", "Items", "Runs"]).
-juego('Back to Bed', ["Puzle", "Indies", "Casuales"], 'https://store.steampowered.com/app/308040/Back_to_Bed/', 'https://i.imgur.com/hey8j52.jpg', 'Back to Bed es un juego indie de rompecabezas en 3D ambientado en un mundo de suenos unico, hermoso y artistico, en el que guias al sonambulo Bob a la seguridad de su cama. Para lograr esto, debes tomar el control del guardian subconsciente de Bob llamado Subob.', 'Bedtime Digital Games', ["Raro", "Para Pensar", "Estetico"]).
+juego('Back To Bed', ["Puzle", "Indies", "Casuales"], 'https://store.steampowered.com/app/308040/Back_to_Bed/', 'https://i.imgur.com/hey8j52.jpg', 'Back to Bed es un juego indie de rompecabezas en 3D ambientado en un mundo de suenos unico, hermoso y artistico, en el que guias al sonambulo Bob a la seguridad de su cama. Para lograr esto, debes tomar el control del guardian subconsciente de Bob llamado Subob.', 'Bedtime Digital Games', ["Raro", "Para Pensar", "Estetico"]).
 juego('Nioh', ["Rpg", "Accion", "Aventura"], 'https://store.steampowered.com/app/485510/Nioh_Complete_Edition/', 'https://i.imgur.com/CXRBRh5.jpg', 'La aventura se ambienta en el Japon feudal y cuenta con la presencia de multitud de demonios y seres sobrenaturales del folclore de dicho pais. Su estilo de lucha y combate sera arido y dificil, invitando al jugador a prepararse concienzudamente en cada enfrentamiento.', 'KOEI TECMO', ["Dificil", "SoulsLike", "Superacion", "Satisfactorio", "Rodar"]).
 juego('Titan Souls', ["Indies", "Bullet Hell", "Pixelados"], 'https://store.steampowered.com/app/297130/Titan_Souls/', 'https://i.imgur.com/yeC5sMM.jpg', 'El objetivo consiste en derrotar a los veinte monstruos gigantes (veintiuno en modo dificil) conocidos como los Titanes, los cuales, al igual que el jugador, solo pueden recibir un golpe pero solo tienen una forma de ser derrotados.', 'Devolver Digital', ["Dificil", "Un Golpe", "Items", "Runs"]).
 juego('Zoo Tycoon', ["Simulacion", "Gestion", "Construccion"], 'https://store.steampowered.com/app/613880/Zoo_Tycoon_Ultimate_Animal_Collection/', 'https://i.imgur.com/qGQ9mbQ.jpg', 'En Zoo Tycoon tenemos que crear y gestionar un zoo, asegurandonos de que los animales sean felices, teniendo cubiertas sus necesidades basicas, lo que atraera a visitantes al zoo, a los que tambien tendremos que tener contentos con una fauna variada, servicios basicos como cafeterias, tiendas de recuerdos, etc.', 'Frontier Developments', ["Animales", "Zoologico", "Chill", "Tranquilidad"]).
@@ -177,3 +177,30 @@ recuperar_Desarrolador(Juego, Desarrolador) :-
 
 recuperar_Pal_Claves(Juego, Pal) :-
     juego(Juego, _, _, _, _, _, Pal).
+
+% Regla para imprimir el juego en formato CSV y devolver el resultado
+imprimir_juego(Nombre, Generos, Desarrollador, PalabrasClaves, Resultado) :-
+    atomic_list_concat(Generos, ',', GenerosStr),
+    atomic_list_concat(PalabrasClaves, ',', PalabrasClavesStr),
+    format(atom(Resultado), '~w;~w;~w;~w', [Nombre, GenerosStr, Desarrollador, PalabrasClavesStr]).
+
+imprimir_juego_unico(Nombre, Resultado) :-
+    juego(Nombre, Generos, _, _, _, Desarrollador, PalabrasClaves),
+    imprimir_juego(Nombre, Generos, Desarrollador, PalabrasClaves, Resultado).
+
+% Regla para imprimir todos los juegos en formato CSV y devolver el resultado
+imprimir_todos_los_juegos(Resultado) :-
+    findall(Juego, (
+        juego(Nombre, Generos, _, _, _, Desarrollador, PalabrasClaves),
+        imprimir_juego(Nombre, Generos, Desarrollador, PalabrasClaves, Juego)
+    ), Resultado).
+
+% Regla para imprimir todos los juegos excepto los que están en la lista de nombres y devolver el resultado
+imprimir_todos_los_juegos_excepto_nombres(Nombres, Resultado) :-
+    findall(Juego, (
+        juego(Nombre, Generos, _, _, _, Desarrollador, PalabrasClaves),
+        \+ member(Nombre, Nombres),
+        imprimir_juego(Nombre, Generos, Desarrollador, PalabrasClaves, Juego)
+    ), Resultado).
+
+% pasar la lista como imprimir_todos_los_juegos_excepto_nombres(['Dark Souls']). es decir con ''

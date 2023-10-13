@@ -77,6 +77,18 @@ slots:
     influence_conversation: false
     mappings:
     - type: custom
+  usarArbol:
+    type: bool
+    initial_value: False
+    influence_conversation: false
+    mappings:
+    - type: custom
+  juegosTipoCSV:
+    type: any
+    initial_value: []
+    influence_conversation: false
+    mappings:
+    - type: custom  
   juegos:
     type: any
     initial_value: []
@@ -89,6 +101,12 @@ slots:
     influence_conversation: false
     mappings:
     - type: custom
+  juegosSesionActual:
+    type: any
+    initial_value: []
+    influence_conversation: false
+    mappings:
+    - type: custom
   juegosNoGustan:
     type: any
     initial_value: []
@@ -96,7 +114,7 @@ slots:
     mappings:
     - type: custom
   nombre:
-    type: any
+    type: text
     influence_conversation: false
     mappings:
     - type: custom
