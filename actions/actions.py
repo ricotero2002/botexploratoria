@@ -334,12 +334,17 @@ class ActionPrimerJuego(Action):
                 print(j)
             print(csv_juegos)
             print(len(csv_juegos))
-            nro = random.randint(0, len(csv_juegos) - 1)
-            juegocsv = csv_juegos.pop(nro)
-            # Dividir la cadena usando la coma como delimitador
-            partes = juegocsv.split(';')
-            # Obtener el primer elemento de la lista
-            juego = partes[0]
+            if len(csv_juegos) > 0:
+                nro = random.randint(0, len(csv_juegos) - 1)
+                juegocsv = csv_juegos.pop(nro)
+                # Dividir la cadena usando la coma como delimitador
+                partes = juegocsv.split(';')
+                # Obtener el primer elemento de la lista
+                juego = partes[0]
+            else:
+                usarArbol = False
+                respuesta = devolverJuegos(categorias)
+                juego= random.choice(respuesta) 
         else:
             respuesta = devolverJuegos(categorias)
             juego= random.choice(respuesta)
@@ -379,6 +384,8 @@ class ActionDevolverJuego(Action):
         juegos= tracker.get_slot("juegos")
         csv_juegos = tracker.get_slot("juegosTipoCSV")
         juegosSesionActual = tracker.get_slot("juegosSesionActual")
+        if len(csv_juegos) == 0:
+            usarArbol=False
         if usarArbol:
             nro = random.randint(0, len(csv_juegos) - 1)
             juegocsv = csv_juegos.pop(nro)

@@ -27,6 +27,8 @@ nlu:
     - quiero que me recomiendes un juego diferente a los que me gustan
     - recomendame un juego que no sea parecido a los que me gustan
     - me podes recomendar otro juego?
+    - me gustaria jugar un juego random
+    - me gustaria que me recomiendes un juego random
 - intent: agradecio
   examples: |
     - bien ahi pa gracias
@@ -79,6 +81,11 @@ nlu:
     - tirame algun juego
     - me poder decir un juego por favor?
     - que juego decis que me gustaria?
+    - estoy para jugar un jueguito
+    - estoy para que me digas un juego
+    - estoy para que me recomiendes un juego
+    - ya que me conoces recomendame un juego
+    - que juego me gustaria segun vos?
 - intent: goodbye
   examples: |
     - chau
@@ -109,6 +116,9 @@ nlu:
     - soy de otra onda
     - soy de otra onda de juegos
     - soy re de otro palo de juegos
+    - no esta mal pero me gustan otro tipo de juegos
+    - no es malo pero prefiero otro tipo de juego
+    - me gustan otros juegos
 - intent: no_le_gusto
   examples: |
     - no me gusto el juego
@@ -139,6 +149,8 @@ nlu:
     - ya lo probe me parecio horrible
     - muy malo el juego
     - lo odio el juego
+    - no me gusto este jeugo
+    - mira el juego malo que me decis
 - intent: le_gusto
   examples: |
     - me gusto
@@ -296,6 +308,7 @@ nlu:
     - inicsesion
     - inicioSesion
     - /start
+    - /Start
     - hola
     - holaaa
     - holiss
@@ -525,6 +538,9 @@ nlu:
     - quiero que mejor me llames [Goku](username)
     - me podes cambiar el nombre a [Benedetto](username)
     - no me gusta mi nombre de usuario me lo cambias a [Pedilooo](username)
+    - quiero que mejor me llames [Boquita](username)
+    - me podes llamar [chicho serna](username)
+    - me gustaria que me llames [loquito](username)
 - regex: username
   examples: |
     - boca
