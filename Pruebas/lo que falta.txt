@@ -1,0 +1,6 @@
+checkar si se cambia de id -> tengo que meter slot de si ultima fue chau no guardar porque ya guardo
+me falta chequear en cada uno si distinto id empezar guardar y empezar de 0,  siempre y cuando ultima accion no fuera chau, y ver bien lo de hola
+basicamente le fuerzo un hola
+chequear si no puedo recomendar mas por arbol----------------------
+agregar nlu---------------------------------------------
+chequear los grupos
