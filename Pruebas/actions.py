@@ -256,6 +256,15 @@ class ActionPrimerJuego(Action):
         input_data=tracker.latest_message
         user_name=input_data["metadata"]["message"]["from"]["first_name"]
         Id=input_data["metadata"]["message"]["from"]["id"]
+        ##################33 chequeo si no habia alguien hablando antes
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (Id != idSlot) and (fueChau == False): #guardo el perfil del que estaba antes
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(Id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
         ############ cargar perfil
         texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
         print(texto)
@@ -387,63 +396,80 @@ class ActionDevolverJuego(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        usarArbol = tracker.get_slot("usarArbol")
-        juegos= tracker.get_slot("juegos")
-        csv_juegos = tracker.get_slot("juegosTipoCSV")
-        juegosSesionActual = tracker.get_slot("juegosSesionActual")
-        if len(csv_juegos) == 0:
-            usarArbol=False
-        if usarArbol:
-            nro = random.randint(0, len(csv_juegos) - 1)
-            juegocsv = csv_juegos.pop(nro)
-            partes = juegocsv.split(';')
-            resultado = partes[0]
-            juego = f"'{resultado}'"
-            imagen= devolverImagenes(juego)
-            message = f"Entonces te puedo recomendar el siguiente juego: {juego},"
-            image_path = f"{imagen}"
-            juegosSesionActual.append(juegocsv)
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = f"Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            #guardo perfil viejo
+            #guardo perfil
+            id= tracker.get_slot("id")
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            await dispatcher.run_action("action_first")
         else:
-            categorias = tracker.get_slot("categorias")
-            respuesta = devolverJuegos(categorias)
-            diferentesResultados= [item for item in respuesta if item not in juegos]
-            juego=None
-            image_path=None
-            if diferentesResultados:
-                juego= random.choice(diferentesResultados)
-                csv = imprimirJuegoUnico(juego)
-                juegosSesionActual.append(csv)
+            usarArbol = tracker.get_slot("usarArbol")
+            juegos= tracker.get_slot("juegos")
+            csv_juegos = tracker.get_slot("juegosTipoCSV")
+            juegosSesionActual = tracker.get_slot("juegosSesionActual")
+            if len(csv_juegos) == 0:
+                usarArbol=False
+            if usarArbol:
+                nro = random.randint(0, len(csv_juegos) - 1)
+                juegocsv = csv_juegos.pop(nro)
+                partes = juegocsv.split(';')
+                resultado = partes[0]
+                juego = f"'{resultado}'"
                 imagen= devolverImagenes(juego)
                 message = f"Entonces te puedo recomendar el siguiente juego: {juego},"
                 image_path = f"{imagen}"
+                juegosSesionActual.append(juegocsv)
             else:
-                categoriasIgnoradas= []
-                while not diferentesResultados and categorias:     
-                    last_element = categorias[-1]  # Get the last element
-                    categoriasIgnoradas.append(last_element)
-                    categorias.pop()  # Remove the last element from the list
-                    respuesta = devolverJuegos(categorias)
-                    diferentesResultados= [item for item in respuesta if item not in juegos]
+                categorias = tracker.get_slot("categorias")
+                respuesta = devolverJuegos(categorias)
+                diferentesResultados= [item for item in respuesta if item not in juegos]
+                juego=None
+                image_path=None
                 if diferentesResultados:
-                    imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
                     juego= random.choice(diferentesResultados)
-                    imagen= devolverImagenes(juego)
-                    image_path = f"{imagen}"
-                    message = f"no tengo mas juego de los que te gustan a vos, tuve que ignorar las siguientes categorias: {imprimir}, que tal este para cambiar un poco: {juego}"
                     csv = imprimirJuegoUnico(juego)
                     juegosSesionActual.append(csv)
+                    imagen= devolverImagenes(juego)
+                    message = f"Entonces te puedo recomendar el siguiente juego: {juego},"
+                    image_path = f"{imagen}"
                 else:
-                    message = f"ya te recomende todos los juegos flaquito juga alguno"
+                    categoriasIgnoradas= []
+                    while not diferentesResultados and categorias:     
+                        last_element = categorias[-1]  # Get the last element
+                        categoriasIgnoradas.append(last_element)
+                        categorias.pop()  # Remove the last element from the list
+                        respuesta = devolverJuegos(categorias)
+                        diferentesResultados= [item for item in respuesta if item not in juegos]
+                    if diferentesResultados:
+                        imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
+                        juego= random.choice(diferentesResultados)
+                        imagen= devolverImagenes(juego)
+                        image_path = f"{imagen}"
+                        message = f"no tengo mas juego de los que te gustan a vos, tuve que ignorar las siguientes categorias: {imprimir}, que tal este para cambiar un poco: {juego}"
+                        csv = imprimirJuegoUnico(juego)
+                        juegosSesionActual.append(csv)
+                    else:
+                        message = f"ya te recomende todos los juegos flaquito juga alguno"
 
-        dispatcher.utter_message(text=message)
-        if image_path:
-            dispatcher.utter_message(image=image_path)
-        if juego:
-            juegos.append(juego)
-        tracker.slots["juegos"] = juegos
-        tracker.slots["juegosSesionActual"] = juegosSesionActual
-        tracker.slots["juegosTipoCSV"] = csv_juegos
-        tracker.slots["FueChau"] = False
+            dispatcher.utter_message(text=message)
+            if image_path:
+                dispatcher.utter_message(image=image_path)
+            if juego:
+                juegos.append(juego)
+            tracker.slots["juegos"] = juegos
+            tracker.slots["juegosSesionActual"] = juegosSesionActual
+            tracker.slots["juegosTipoCSV"] = csv_juegos
+            tracker.slots["FueChau"] = False
         return []
    
 class ActionDevolverCategorias(Action):
@@ -452,13 +478,30 @@ class ActionDevolverCategorias(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        juegos= tracker.get_slot("juegos")
-        juego= juegos[-1]
-        categorias= devolverCategorias(juego)
-        imprimir = ", ".join([f'"{categoria}"' for categoria in categorias])
-        message = f"las categorias del juego {juego} son: {imprimir}"
-        dispatcher.utter_message(text=message)
-        tracker.slots["FueChau"] = False
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = f"Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            #guardo perfil viejo
+            #guardo perfil
+            id= tracker.get_slot("id")
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            await dispatcher.run_action("action_first")
+        else:
+            juegos= tracker.get_slot("juegos")
+            juego= juegos[-1]
+            categorias= devolverCategorias(juego)
+            imprimir = ", ".join([f'"{categoria}"' for categoria in categorias])
+            message = f"las categorias del juego {juego} son: {imprimir}"
+            dispatcher.utter_message(text=message)
+            tracker.slots["FueChau"] = False
         return []
 
 class ActionDevolverLink(Action):
@@ -467,12 +510,29 @@ class ActionDevolverLink(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        juegos= tracker.get_slot("juegos")
-        juego= juegos[-1]
-        link= devolverLink(juego)
-        message = f"el link de compra del juego {juego} es: {link}"
-        dispatcher.utter_message(text=message)
-        tracker.slots["FueChau"] = False
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = f"Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            #guardo perfil viejo
+            #guardo perfil
+            id= tracker.get_slot("id")
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            await dispatcher.run_action("action_first")
+        else:
+            juegos= tracker.get_slot("juegos")
+            juego= juegos[-1]
+            link= devolverLink(juego)
+            message = f"el link de compra del juego {juego} es: {link}"
+            dispatcher.utter_message(text=message)
+            tracker.slots["FueChau"] = False
         return []
     
 class ActionDevolverSinopsis(Action):
@@ -481,12 +541,29 @@ class ActionDevolverSinopsis(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        juegos= tracker.get_slot("juegos")
-        juego= juegos[-1]
-        link= devolverSinopsis(juego)
-        message = f"la sinopsis del juego {juego} es: {link}"
-        dispatcher.utter_message(text=message)
-        tracker.slots["FueChau"] = False
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = f"Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            #guardo perfil viejo
+            #guardo perfil
+            id= tracker.get_slot("id")
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            await dispatcher.run_action("action_first")
+        else:
+            juegos= tracker.get_slot("juegos")
+            juego= juegos[-1]
+            link= devolverSinopsis(juego)
+            message = f"la sinopsis del juego {juego} es: {link}"
+            dispatcher.utter_message(text=message)
+            tracker.slots["FueChau"] = False
         return []
     
 class ActionDevolverJuegoParecido(Action):
@@ -495,49 +572,66 @@ class ActionDevolverJuegoParecido(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        juegosRecomendados= tracker.get_slot("juegos")
-        juegoAnterior= juegosRecomendados[-1]
-        categorias= devolverCategorias(juegoAnterior)
-        juegosParecidos= devolverJuegos(categorias)
-        juegosSesionActual = tracker.get_slot("juegosSesionActual")
-
-        diferentesResultados= [item for item in juegosParecidos if item not in juegosRecomendados]
-        juego=None
-        image_path=None
-        if diferentesResultados:
-            juego= random.choice(diferentesResultados)
-            csv = imprimirJuegoUnico(juego)
-            juegosSesionActual.append(csv)
-            imagen= devolverImagenes(juego)
-            message = f"Entonces te puedo recomendar el siguiente juego que es parecido a {juegoAnterior}: {juego}"
-            image_path = f"{imagen}"
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = f"Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            #guardo perfil viejo
+            #guardo perfil
+            id= tracker.get_slot("id")
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            await dispatcher.run_action("action_first")
         else:
-            categoriasIgnoradas= []
-            while not diferentesResultados and categorias:     
-                last_element = categorias[-1]  # Get the last element
-                categoriasIgnoradas.append(last_element)
-                categorias.pop()  # Remove the last element from the list
-                respuesta = devolverJuegos(categorias)
-                diferentesResultados= [item for item in respuesta if item not in juegosRecomendados]
+            juegosRecomendados= tracker.get_slot("juegos")
+            juegoAnterior= juegosRecomendados[-1]
+            categorias= devolverCategorias(juegoAnterior)
+            juegosParecidos= devolverJuegos(categorias)
+            juegosSesionActual = tracker.get_slot("juegosSesionActual")
+
+            diferentesResultados= [item for item in juegosParecidos if item not in juegosRecomendados]
+            juego=None
+            image_path=None
             if diferentesResultados:
-                imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
                 juego= random.choice(diferentesResultados)
                 csv = imprimirJuegoUnico(juego)
                 juegosSesionActual.append(csv)
                 imagen= devolverImagenes(juego)
+                message = f"Entonces te puedo recomendar el siguiente juego que es parecido a {juegoAnterior}: {juego}"
                 image_path = f"{imagen}"
-                message = f"no tengo mas juegos parecidos a {juegoAnterior}, tuve que ignorar las siguientes categorias: {imprimir}, que tal este para cambiar un poco: {juego}"
             else:
-                message = f"ya te recomende todos los juegos flaquito juga alguno"
+                categoriasIgnoradas= []
+                while not diferentesResultados and categorias:     
+                    last_element = categorias[-1]  # Get the last element
+                    categoriasIgnoradas.append(last_element)
+                    categorias.pop()  # Remove the last element from the list
+                    respuesta = devolverJuegos(categorias)
+                    diferentesResultados= [item for item in respuesta if item not in juegosRecomendados]
+                if diferentesResultados:
+                    imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
+                    juego= random.choice(diferentesResultados)
+                    csv = imprimirJuegoUnico(juego)
+                    juegosSesionActual.append(csv)
+                    imagen= devolverImagenes(juego)
+                    image_path = f"{imagen}"
+                    message = f"no tengo mas juegos parecidos a {juegoAnterior}, tuve que ignorar las siguientes categorias: {imprimir}, que tal este para cambiar un poco: {juego}"
+                else:
+                    message = f"ya te recomende todos los juegos flaquito juga alguno"
 
-        dispatcher.utter_message(text=message)
-        if image_path:
-            dispatcher.utter_message(image=image_path)
-        if juego:
-            juegosRecomendados.append(juego)
-        tracker.slots["juegos"] = juegosRecomendados
-        tracker.slots["juegosSesionActual"] = juegosSesionActual
-        tracker.slots["FueChau"] = False
+            dispatcher.utter_message(text=message)
+            if image_path:
+                dispatcher.utter_message(image=image_path)
+            if juego:
+                juegosRecomendados.append(juego)
+            tracker.slots["juegos"] = juegosRecomendados
+            tracker.slots["juegosSesionActual"] = juegosSesionActual
+            tracker.slots["FueChau"] = False
         return []
 
 class ActionSetearCategorias(Action):
@@ -546,21 +640,38 @@ class ActionSetearCategorias(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        juegosRecomendados = tracker.get_slot("juegosSesionActual")
-        print("que paso ahora")
-        print(juegosRecomendados)
-        juegoAnterior= juegosRecomendados[-1]
-        juegos= tracker.get_slot("juegos")
-        juego= juegos[-1]
-        categorias= devolverCategorias(juego)
-        JuegosGustan= tracker.get_slot("juegosGustan")
-        if juegoAnterior not in JuegosGustan:
-            JuegosGustan.append(juegoAnterior) #juego que le gusto
-        message = f"Me alegro que te haya gustado el juego {juego}, lo tendre en cuenta entonces"
-        dispatcher.utter_message(text=message)
-        tracker.slots["categorias"] = categorias
-        tracker.slots["juegosGustan"] = JuegosGustan
-        tracker.slots["FueChau"] = False
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = f"Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            #guardo perfil viejo
+            #guardo perfil
+            id= tracker.get_slot("id")
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            await dispatcher.run_action("action_first")
+        else:
+            juegosRecomendados = tracker.get_slot("juegosSesionActual")
+            print("que paso ahora")
+            print(juegosRecomendados)
+            juegoAnterior= juegosRecomendados[-1]
+            juegos= tracker.get_slot("juegos")
+            juego= juegos[-1]
+            categorias= devolverCategorias(juego)
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            if juegoAnterior not in JuegosGustan:
+                JuegosGustan.append(juegoAnterior) #juego que le gusto
+            message = f"Me alegro que te haya gustado el juego {juego}, lo tendre en cuenta entonces"
+            dispatcher.utter_message(text=message)
+            tracker.slots["categorias"] = categorias
+            tracker.slots["juegosGustan"] = JuegosGustan
+            tracker.slots["FueChau"] = False
         return [] 
 
 class ActionPreguntarCategorias(Action):
@@ -569,19 +680,36 @@ class ActionPreguntarCategorias(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        juegosRecomendados= tracker.get_slot("juegosSesionActual")
-        juegoAnterior= juegosRecomendados[-1]
-        JuegosNoGustan= tracker.get_slot("juegosNoGustan")
-        if juegoAnterior not in JuegosNoGustan:
-            JuegosNoGustan.append(juegoAnterior)#juego que no le gusto
-        juegos= tracker.get_slot("juegos")
-        juego= juegos[-1]
-        categorias= devolverCategorias(juego)
-        imprimir = ", ".join([f'"{categoria}"' for categoria in categorias])
-        message = f"cual de las categorias del juego {juego} no te gustaron? son las siguientes: {imprimir}"
-        dispatcher.utter_message(text=message)
-        tracker.slots["juegosNoGustan"] = JuegosNoGustan
-        tracker.slots["FueChau"] = False
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = f"Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            #guardo perfil viejo
+            #guardo perfil
+            id= tracker.get_slot("id")
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            await dispatcher.run_action("action_first")
+        else:
+            juegosRecomendados= tracker.get_slot("juegosSesionActual")
+            juegoAnterior= juegosRecomendados[-1]
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            if juegoAnterior not in JuegosNoGustan:
+                JuegosNoGustan.append(juegoAnterior)#juego que no le gusto
+            juegos= tracker.get_slot("juegos")
+            juego= juegos[-1]
+            categorias= devolverCategorias(juego)
+            imprimir = ", ".join([f'"{categoria}"' for categoria in categorias])
+            message = f"cual de las categorias del juego {juego} no te gustaron? son las siguientes: {imprimir}"
+            dispatcher.utter_message(text=message)
+            tracker.slots["juegosNoGustan"] = JuegosNoGustan
+            tracker.slots["FueChau"] = False
         return []
     
 class ActionBorrarCategorias(Action):
@@ -590,25 +718,42 @@ class ActionBorrarCategorias(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        # Get the entities from the last user message
-        latest_entities = tracker.latest_message.get('entities', [])
-        # Filter the entities based on the entity name
-        categoriasNoLeGustan = [entity['value'] for entity in latest_entities if entity['entity'] == 'categoria']
-        categoriasNoLeGustan = [capitalize_first_char(item) for item in categoriasNoLeGustan]
-        for valor in categoriasNoLeGustan: #reviso que las categorias existan
-            resultado= ExisteCategoria(valor)
-            if resultado != "true":
-                categoriasNoLeGustan.remove(valor)
-        categoriasActuales= tracker.get_slot("categorias")
-        categorias= [item for item in categoriasActuales if item not in categoriasNoLeGustan]
-        if categoriasNoLeGustan:
-            imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasNoLeGustan])
-            message = f"entonces las categorias que no te gustan son las siguientes: {imprimir}, lo voy a tener en cuenta"
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = f"Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            #guardo perfil viejo
+            #guardo perfil
+            id= tracker.get_slot("id")
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            await dispatcher.run_action("action_first")
         else:
-            message = f"gracias por la data pero igual no conosco esas categorias jejeje"
-        dispatcher.utter_message(text=message)
-        tracker.slots["categorias"] = categorias
-        tracker.slots["FueChau"] = False
+            # Get the entities from the last user message
+            latest_entities = tracker.latest_message.get('entities', [])
+            # Filter the entities based on the entity name
+            categoriasNoLeGustan = [entity['value'] for entity in latest_entities if entity['entity'] == 'categoria']
+            categoriasNoLeGustan = [capitalize_first_char(item) for item in categoriasNoLeGustan]
+            for valor in categoriasNoLeGustan: #reviso que las categorias existan
+                resultado= ExisteCategoria(valor)
+                if resultado != "true":
+                    categoriasNoLeGustan.remove(valor)
+            categoriasActuales= tracker.get_slot("categorias")
+            categorias= [item for item in categoriasActuales if item not in categoriasNoLeGustan]
+            if categoriasNoLeGustan:
+                imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasNoLeGustan])
+                message = f"entonces las categorias que no te gustan son las siguientes: {imprimir}, lo voy a tener en cuenta"
+            else:
+                message = f"gracias por la data pero igual no conosco esas categorias jejeje"
+            dispatcher.utter_message(text=message)
+            tracker.slots["categorias"] = categorias
+            tracker.slots["FueChau"] = False
         return []
     
 class ActionDevolverJuegoEnBaseAJuego(Action):
@@ -617,62 +762,78 @@ class ActionDevolverJuegoEnBaseAJuego(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        
-        latest_entities = tracker.latest_message.get('entities', [])
-        juegos = [entity['value'] for entity in latest_entities if entity['entity'] == 'juego']
-        juegosSesionActual = tracker.get_slot("juegosSesionActual")
-        juegos = [capitalize_first_char(item) for item in juegos]
-        juegosRecomendados= tracker.get_slot("juegos")
-        juegosRecomendados = [capitalize_first_char(item) for item in juegosRecomendados]
-        for valor in juegos: #reviso que las categorias existan
-            resultado= ExisteJuego(valor)
-            if resultado != "true":
-                juegos.remove(valor)
-        image_path=None
-        if juegos:
-            juego = juegos[-1]
-            juegoBase=juego
-            juegosRecomendados.append(juegoBase)
-            categorias= devolverCategorias(juego)
-            juegosParecidos= devolverJuegos(categorias)
-            juegosPosibles= [item for item in juegosParecidos if item not in juegosRecomendados]
-            juegoADecir=None
-            if juegosPosibles:
-                juegoADecir= random.choice(juegosPosibles)
-                csv = imprimirJuegoUnico(juegoADecir)
-                juegosSesionActual.append(csv)
-                imagen= devolverImagenes(juegoADecir)
-                message = f"Entonces te puedo recomendar el siguiente juego: {juegoADecir}, debido a su parecido con: {juego}"
-                image_path = f"{imagen}"
-            else:
-                categoriasIgnoradas= []
-                while not juegosPosibles and categorias:     
-                    last_element = categorias[-1]  # Get the last element
-                    categoriasIgnoradas.append(last_element)
-                    categorias.pop()  # Remove the last element from the list
-                    respuesta = devolverJuegos(categorias)
-                    juegosPosibles= [item for item in respuesta if item not in juegosRecomendados]
-                if juegosPosibles:
-                    imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
-                    juego= random.choice(juegosPosibles)
-                    csv = imprimirJuegoUnico(juego)
-                    juegosSesionActual.append(csv)
-                    imagen= devolverImagenes(juego)
-                    image_path = f"{imagen}"
-                    message = f"no tengo mas juegos parecidos a {juegoBase}, tuve que ignorar las siguientes categorias: {imprimir}, que tal este para cambiar un poco: {juego}"
-                else:
-                    message = f"ya te recomende todos los juegos flaquito juga alguno"
-            juegosRecomendados.append(juegoADecir)
-            juegosRecomendados.remove(juegoBase)
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = f"Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            #guardo perfil viejo
+            #guardo perfil
+            id= tracker.get_slot("id")
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            await dispatcher.run_action("action_first")
         else:
-            message = f"Disculpa no conosco este juego"
+            latest_entities = tracker.latest_message.get('entities', [])
+            juegos = [entity['value'] for entity in latest_entities if entity['entity'] == 'juego']
+            juegosSesionActual = tracker.get_slot("juegosSesionActual")
+            juegos = [capitalize_first_char(item) for item in juegos]
+            juegosRecomendados= tracker.get_slot("juegos")
+            juegosRecomendados = [capitalize_first_char(item) for item in juegosRecomendados]
+            for valor in juegos: #reviso que las categorias existan
+                resultado= ExisteJuego(valor)
+                if resultado != "true":
+                    juegos.remove(valor)
+            image_path=None
+            if juegos:
+                juego = juegos[-1]
+                juegoBase=juego
+                juegosRecomendados.append(juegoBase)
+                categorias= devolverCategorias(juego)
+                juegosParecidos= devolverJuegos(categorias)
+                juegosPosibles= [item for item in juegosParecidos if item not in juegosRecomendados]
+                juegoADecir=None
+                if juegosPosibles:
+                    juegoADecir= random.choice(juegosPosibles)
+                    csv = imprimirJuegoUnico(juegoADecir)
+                    juegosSesionActual.append(csv)
+                    imagen= devolverImagenes(juegoADecir)
+                    message = f"Entonces te puedo recomendar el siguiente juego: {juegoADecir}, debido a su parecido con: {juego}"
+                    image_path = f"{imagen}"
+                else:
+                    categoriasIgnoradas= []
+                    while not juegosPosibles and categorias:     
+                        last_element = categorias[-1]  # Get the last element
+                        categoriasIgnoradas.append(last_element)
+                        categorias.pop()  # Remove the last element from the list
+                        respuesta = devolverJuegos(categorias)
+                        juegosPosibles= [item for item in respuesta if item not in juegosRecomendados]
+                    if juegosPosibles:
+                        imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
+                        juego= random.choice(juegosPosibles)
+                        csv = imprimirJuegoUnico(juego)
+                        juegosSesionActual.append(csv)
+                        imagen= devolverImagenes(juego)
+                        image_path = f"{imagen}"
+                        message = f"no tengo mas juegos parecidos a {juegoBase}, tuve que ignorar las siguientes categorias: {imprimir}, que tal este para cambiar un poco: {juego}"
+                    else:
+                        message = f"ya te recomende todos los juegos flaquito juga alguno"
+                juegosRecomendados.append(juegoADecir)
+                juegosRecomendados.remove(juegoBase)
+            else:
+                message = f"Disculpa no conosco este juego"
 
-        dispatcher.utter_message(text=message)
-        if image_path:
-            dispatcher.utter_message(image=image_path)
-        tracker.slots["juegos"] = juegosRecomendados
-        tracker.slots["juegosSesionActual"] = juegosSesionActual
-        tracker.slots["FueChau"] = False
+            dispatcher.utter_message(text=message)
+            if image_path:
+                dispatcher.utter_message(image=image_path)
+            tracker.slots["juegos"] = juegosRecomendados
+            tracker.slots["juegosSesionActual"] = juegosSesionActual
+            tracker.slots["FueChau"] = False
         return []
 
     
@@ -682,62 +843,78 @@ class ActionDevolverJuegoEnBaseACategoria(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        
-        latest_entities = tracker.latest_message.get('entities', [])
-        categorias = [entity['value'] for entity in latest_entities if entity['entity'] == 'categoria']
-        categorias = [capitalize_first_char(item) for item in categorias]
-        juegosSesionActual = tracker.get_slot("juegosSesionActual")
-        categorias = list(set(categorias)) #elimino repetidos
-        for valor in categorias: #reviso que las categorias existan
-            resultado= ExisteCategoria(valor)
-            if resultado != "true":
-                categorias.remove(valor)
-        image_path=None
-        juegoADecir= None
-        juegosRecomendados= tracker.get_slot("juegos")
-        if categorias:
-            categorias= categorias[:3] #limito categorias a 3
-            juegosParecidos= devolverJuegos(categorias)
-            juegosPosibles= [item for item in juegosParecidos if item not in juegosRecomendados]
-            juegoADecir=None
-            if juegosPosibles:
-                Categoriasimprimir = ", ".join([f'"{categoria}"' for categoria in categorias])
-                juegoADecir= random.choice(juegosPosibles)
-                csv = imprimirJuegoUnico(juegoADecir)
-                juegosSesionActual.append(csv)
-                imagen= devolverImagenes(juegoADecir)
-                message = f"Entonces te puedo recomendar el siguiente juego: {juegoADecir}, debido a las categorias{Categoriasimprimir}"
-                image_path = f"{imagen}"
-            else:
-                categoriasIgnoradas= []
-                while not juegosPosibles and categorias:  
-                    last_element = categorias[-1]  # Get the last element
-                    categoriasIgnoradas.append(last_element)
-                    categorias.pop()  # Remove the last element from the list
-                    respuesta = devolverJuegos(categorias)
-                    juegosPosibles= [item for item in respuesta if item not in juegosRecomendados]
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = f"Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            #guardo perfil viejo
+            #guardo perfil
+            id= tracker.get_slot("id")
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            await dispatcher.run_action("action_first")
+        else:
+            latest_entities = tracker.latest_message.get('entities', [])
+            categorias = [entity['value'] for entity in latest_entities if entity['entity'] == 'categoria']
+            categorias = [capitalize_first_char(item) for item in categorias]
+            juegosSesionActual = tracker.get_slot("juegosSesionActual")
+            categorias = list(set(categorias)) #elimino repetidos
+            for valor in categorias: #reviso que las categorias existan
+                resultado= ExisteCategoria(valor)
+                if resultado != "true":
+                    categorias.remove(valor)
+            image_path=None
+            juegoADecir= None
+            juegosRecomendados= tracker.get_slot("juegos")
+            if categorias:
+                categorias= categorias[:3] #limito categorias a 3
+                juegosParecidos= devolverJuegos(categorias)
+                juegosPosibles= [item for item in juegosParecidos if item not in juegosRecomendados]
+                juegoADecir=None
                 if juegosPosibles:
-                    CategoriasBorradas = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
-                    CategoriasUsadas = ", ".join([f'"{categoria}"' for categoria in categorias])
+                    Categoriasimprimir = ", ".join([f'"{categoria}"' for categoria in categorias])
                     juegoADecir= random.choice(juegosPosibles)
                     csv = imprimirJuegoUnico(juegoADecir)
                     juegosSesionActual.append(csv)
                     imagen= devolverImagenes(juegoADecir)
+                    message = f"Entonces te puedo recomendar el siguiente juego: {juegoADecir}, debido a las categorias{Categoriasimprimir}"
                     image_path = f"{imagen}"
-                    message = f"no tengo mas con las categorias {CategoriasBorradas}, por lo que tome en cuenta las siguientes:{CategoriasUsadas} y te recomiendo en su lugar: {juegoADecir}"
                 else:
-                    message = f"ya te recomende todos los juegos flaquito juga alguno"
-        else:
-            message = f"Disculpa no conosco esa categoria"
+                    categoriasIgnoradas= []
+                    while not juegosPosibles and categorias:  
+                        last_element = categorias[-1]  # Get the last element
+                        categoriasIgnoradas.append(last_element)
+                        categorias.pop()  # Remove the last element from the list
+                        respuesta = devolverJuegos(categorias)
+                        juegosPosibles= [item for item in respuesta if item not in juegosRecomendados]
+                    if juegosPosibles:
+                        CategoriasBorradas = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
+                        CategoriasUsadas = ", ".join([f'"{categoria}"' for categoria in categorias])
+                        juegoADecir= random.choice(juegosPosibles)
+                        csv = imprimirJuegoUnico(juegoADecir)
+                        juegosSesionActual.append(csv)
+                        imagen= devolverImagenes(juegoADecir)
+                        image_path = f"{imagen}"
+                        message = f"no tengo mas con las categorias {CategoriasBorradas}, por lo que tome en cuenta las siguientes:{CategoriasUsadas} y te recomiendo en su lugar: {juegoADecir}"
+                    else:
+                        message = f"ya te recomende todos los juegos flaquito juga alguno"
+            else:
+                message = f"Disculpa no conosco esa categoria"
 
-        dispatcher.utter_message(text=message)
-        if image_path: 
-            dispatcher.utter_message(image=image_path)
-        if juegoADecir:
-            juegosRecomendados.append(juegoADecir)
-        tracker.slots["juegos"] = juegosRecomendados
-        tracker.slots["juegosSesionActual"] = juegosSesionActual
-        tracker.slots["FueChau"] = False
+            dispatcher.utter_message(text=message)
+            if image_path: 
+                dispatcher.utter_message(image=image_path)
+            if juegoADecir:
+                juegosRecomendados.append(juegoADecir)
+            tracker.slots["juegos"] = juegosRecomendados
+            tracker.slots["juegosSesionActual"] = juegosSesionActual
+            tracker.slots["FueChau"] = False
         return []
 
 class ActionPonerCategorias(Action):
@@ -746,46 +923,62 @@ class ActionPonerCategorias(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        
-        latest_entities = tracker.latest_message.get('entities', [])
-        categoriasEntidades = [entity['value'] for entity in latest_entities if entity['entity'] == 'categoria']
-        categoriasEntidades = list(set(categoriasEntidades)) #elimino repetidos
-        categoriasEntidades = [capitalize_first_char(item) for item in categoriasEntidades]
-        categoriasActuales= tracker.get_slot("categorias")
-        for valor in categoriasEntidades:
-            resultado= ExisteCategoria(valor)
-            if resultado != "true":
-                categoriasEntidades.remove(valor)
-        categorias= [item for item in categoriasEntidades if item not in categoriasActuales]
-        if categorias:
-            tamanioActuales=len(categoriasActuales)
-            tamanioDif=len(categorias)
-            if tamanioDif >3:
-                tamanioDif=3
-            indice=tamanioDif + tamanioActuales
-            if indice > 3:
-                indice=3
-            while len(categoriasActuales) < indice: #pongo elementos vacios para poder hacer categoriasaActuales[i]
-                categoriasActuales.append(None)
-            print(tamanioActuales)
-            print(tamanioDif)
-            print(categoriasActuales)
-            print(categorias)
-
-            while (indice != 0) and (tamanioDif != 0):
-                indice -= 1
-                tamanioDif -= 1
-                print(indice)
-                print(tamanioDif)
-                categoriasActuales[indice] = categorias[tamanioDif]
-            message = f"voy a tener encuenta que te gustan esas categorias entonces"
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = f"Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            #guardo perfil viejo
+            #guardo perfil
+            id= tracker.get_slot("id")
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            await dispatcher.run_action("action_first")
         else:
-            message = f"Disculpa no conosco esa categoria o ya se que te gusta nose una de 2"
-        print(categoriasEntidades)
-        print(categoriasActuales)            
-        dispatcher.utter_message(text=message)
-        tracker.slots["categorias"] = categoriasActuales
-        tracker.slots["FueChau"] = False
+            latest_entities = tracker.latest_message.get('entities', [])
+            categoriasEntidades = [entity['value'] for entity in latest_entities if entity['entity'] == 'categoria']
+            categoriasEntidades = list(set(categoriasEntidades)) #elimino repetidos
+            categoriasEntidades = [capitalize_first_char(item) for item in categoriasEntidades]
+            categoriasActuales= tracker.get_slot("categorias")
+            for valor in categoriasEntidades:
+                resultado= ExisteCategoria(valor)
+                if resultado != "true":
+                    categoriasEntidades.remove(valor)
+            categorias= [item for item in categoriasEntidades if item not in categoriasActuales]
+            if categorias:
+                tamanioActuales=len(categoriasActuales)
+                tamanioDif=len(categorias)
+                if tamanioDif >3:
+                    tamanioDif=3
+                indice=tamanioDif + tamanioActuales
+                if indice > 3:
+                    indice=3
+                while len(categoriasActuales) < indice: #pongo elementos vacios para poder hacer categoriasaActuales[i]
+                    categoriasActuales.append(None)
+                print(tamanioActuales)
+                print(tamanioDif)
+                print(categoriasActuales)
+                print(categorias)
+
+                while (indice != 0) and (tamanioDif != 0):
+                    indice -= 1
+                    tamanioDif -= 1
+                    print(indice)
+                    print(tamanioDif)
+                    categoriasActuales[indice] = categorias[tamanioDif]
+                message = f"voy a tener encuenta que te gustan esas categorias entonces"
+            else:
+                message = f"Disculpa no conosco esa categoria o ya se que te gusta nose una de 2"
+            print(categoriasEntidades)
+            print(categoriasActuales)            
+            dispatcher.utter_message(text=message)
+            tracker.slots["categorias"] = categoriasActuales
+            tracker.slots["FueChau"] = False
         return []
 
 class ActionDevolverJuegoRandom(Action):
@@ -794,30 +987,47 @@ class ActionDevolverJuegoRandom(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        respuesta = devolverJuegos([])
-        juegos= tracker.get_slot("juegos")
-        juegosSesionActual = tracker.get_slot("juegosSesionActual")
-        diferentesResultados= [item for item in respuesta if item not in juegos]
-        juego=None
-        image_path=None
-        if diferentesResultados:
-            juego= random.choice(diferentesResultados)
-            imagen= devolverImagenes(juego)
-            message = f"Entonces te puedo recomendar el siguiente juego: {juego}"
-            image_path = f"{imagen}"
-            csv = imprimirJuegoUnico(juego)
-            juegosSesionActual.append(csv)
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = f"Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            #guardo perfil viejo
+            #guardo perfil
+            id= tracker.get_slot("id")
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            await dispatcher.run_action("action_first")
         else:
-            message = f"ya te recomende todos los juegos flaquito juga alguno"
+            respuesta = devolverJuegos([])
+            juegos= tracker.get_slot("juegos")
+            juegosSesionActual = tracker.get_slot("juegosSesionActual")
+            diferentesResultados= [item for item in respuesta if item not in juegos]
+            juego=None
+            image_path=None
+            if diferentesResultados:
+                juego= random.choice(diferentesResultados)
+                imagen= devolverImagenes(juego)
+                message = f"Entonces te puedo recomendar el siguiente juego: {juego}"
+                image_path = f"{imagen}"
+                csv = imprimirJuegoUnico(juego)
+                juegosSesionActual.append(csv)
+            else:
+                message = f"ya te recomende todos los juegos flaquito juga alguno"
 
-        dispatcher.utter_message(text=message)
-        if image_path:
-            dispatcher.utter_message(image=image_path)
-        if juego:
-            juegos.append(juego)
-        tracker.slots["juegos"] = juegos
-        tracker.slots["juegosSesionActual"] = juegosSesionActual
-        tracker.slots["FueChau"] = False
+            dispatcher.utter_message(text=message)
+            if image_path:
+                dispatcher.utter_message(image=image_path)
+            if juego:
+                juegos.append(juego)
+            tracker.slots["juegos"] = juegos
+            tracker.slots["juegosSesionActual"] = juegosSesionActual
+            tracker.slots["FueChau"] = False
         return []
 
 def guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan):
@@ -891,15 +1101,32 @@ class ActionGuardarPerfil(Action):
     async def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        #guardo perfil
-        id= tracker.get_slot("id")
-        nombre= tracker.get_slot("nombre")
-        Categorias= tracker.get_slot("categorias")
-        #guardo juegos que gustan y no
-        JuegosGustan= tracker.get_slot("juegosGustan")
-        JuegosNoGustan= tracker.get_slot("juegosNoGustan")
-        guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
-        tracker.slots["FueChau"] = True
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = f"Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            #guardo perfil viejo
+            #guardo perfil
+            id= tracker.get_slot("id")
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            await dispatcher.run_action("action_first")
+        else:
+            #guardo perfil
+            id= tracker.get_slot("id")
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            tracker.slots["FueChau"] = True
         return []
     
 class ActionCambiarNombre(Action):
@@ -908,15 +1135,32 @@ class ActionCambiarNombre(Action):
     async def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        latest_entities = tracker.latest_message.get('entities', [])
-        nuevoNombre = [entity['value'] for entity in latest_entities if entity['entity'] == 'username']
-        if nuevoNombre:
-            nombre=nuevoNombre
-        else:
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = f"Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            #guardo perfil viejo
+            #guardo perfil
+            id= tracker.get_slot("id")
             nombre= tracker.get_slot("nombre")
-        message = f"Bueno entonces te voy a llamar {nombre}"
-        dispatcher.utter_message(text=message)
-        tracker.slots["nombre"] = nombre
-        tracker.slots["FueChau"] = False
+            Categorias= tracker.get_slot("categorias")
+            #guardo juegos que gustan y no
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            guardar_perfil(id,nombre,Categorias,JuegosGustan,JuegosNoGustan)
+            await dispatcher.run_action("action_first")
+        else:
+            latest_entities = tracker.latest_message.get('entities', [])
+            nuevoNombre = [entity['value'] for entity in latest_entities if entity['entity'] == 'username']
+            if nuevoNombre:
+                nombre=nuevoNombre
+            else:
+                nombre= tracker.get_slot("nombre")
+            message = f"Bueno entonces te voy a llamar {nombre}"
+            dispatcher.utter_message(text=message)
+            tracker.slots["nombre"] = nombre
+            tracker.slots["FueChau"] = False
         return []
 

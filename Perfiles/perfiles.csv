@@ -1,2 +1,4 @@
-ID;Nombre;Categorias
-1313747149;Bostero a muerte;['Simulacion', 'Casuales', 'Sandbox']
+ID;Nombre;Categorias;LastGame;Chau
+1313747149;Bostero a muerte;['Accion', 'Rpg', 'Fantasia Oscura'];Bloodborne;True
+6950744032;Lobo;['Accion', 'Rpg'];Remnant II;False
+6561756624;Pajerito;['Accion', 'Aventura', 'Rpg'];Remnant II;True

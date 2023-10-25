@@ -10,6 +10,7 @@
 from operator import ge
 import os
 from asyncio import events
+import asyncio
 from cgitb import text
 from typing import Any, Text, Dict, List
 from urllib import response
@@ -27,6 +28,7 @@ from sklearn.tree import DecisionTreeClassifier
 import graphviz
 import joblib
 import csv
+import json
 
 def ExisteJuego(Juego) -> List[Text]:
     Juego=f"'{Juego}'"
@@ -245,7 +247,7 @@ class ActionSessionStart(Action):
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
 
-        return [ SessionStarted(), ActionExecuted("action_first"), ActionExecuted("action_listen")]
+        return [ SessionStarted(), ActionExecuted("action_listen")]
     
 class ActionPrimerJuego(Action):
     def name(self) -> Text:
@@ -256,6 +258,23 @@ class ActionPrimerJuego(Action):
         input_data=tracker.latest_message
         user_name=input_data["metadata"]["message"]["from"]["first_name"]
         Id=input_data["metadata"]["message"]["from"]["id"]
+        ##################33 chequeo si no habia alguien hablando antes
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        nuevoUsuario=False
+        if (Id != idSlot) and (fueChau == False): #guardo el perfil del que estaba antes
+            nuevoUsuario = True
+            nombre= tracker.get_slot("nombre")
+            Categorias= tracker.get_slot("categorias")
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            Juegos= tracker.get_slot("juegos")
+            if len(Juegos) > 0:
+                juego = Juegos[-1]
+            else:
+                juego = None
+            Juegoslista= tracker.get_slot("juegosTipoCSV")
+            guardar_perfil(idSlot,nombre,Categorias,JuegosGustan,JuegosNoGustan,juego,False,Juegoslista)
         ############ cargar perfil
         texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
         print(texto)
@@ -267,22 +286,25 @@ class ActionPrimerJuego(Action):
             id_valor = fila['ID'].values[0]
             nombre_valor = fila['Nombre'].values[0]
             categorias = ast.literal_eval(fila['Categorias'].values[0])
-            print(id_valor)
-            print(nombre_valor)
-            print(categorias)
-            direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/data_{Id}.csv'
-            df=pd.read_csv(direccion,sep=';')
-            juegos = []
-            for nombre in df['nombre']: #me traigo todos los juegos ya recomendados
-                juegos.append(nombre)
-            if len(juegos) > 7:
+            direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{Id}.json'
+            try:
+                with open(direccion, 'r') as archivo:
+                    contenido = archivo.read()
+                    if contenido.strip():  # Verifica si el contenido no está vacío
+                        csv_juegos = json.loads(contenido)
+                    else:
+                        csv_juegos = []  # Si está vacío, asigna una lista vacía
+            except json.decoder.JSONDecodeError:
+                csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+            juegos = [juego.split(';')[0] for juego in csv_juegos]
+            if len(csv_juegos) > 0:
                 usarArbol = True
             else:
                 usarArbol = False
-        else: #tengo que crear el perfil
+        else: #tengo que crear el perfilZ  xcvgfrt5
             print('No existia valor')
             usarArbol = False
-            nueva_fila = pd.DataFrame({'ID': [Id], 'Nombre': [user_name], 'Categorias': [[]]})
+            nueva_fila = pd.DataFrame({'ID': [Id], 'Nombre': [user_name], 'Categorias': [[]], 'LastGame':[None],'Chau':True})
             # Concatenate the new row with the existing DataFrame
             texto = pd.concat([texto, nueva_fila], ignore_index=True)
             texto.to_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv', sep=';', index=False)
@@ -292,61 +314,26 @@ class ActionPrimerJuego(Action):
             # Guardar el DataFrame en una dirección
             direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/data_{Id}.csv'
             df.to_csv(direccion, sep=';', index=False)
+            # Tu lista de texto
+            texto = []
+            direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{Id}.json'
+            # Escribir la lista en un archivo JSON
+            with open(direccion, 'w') as archivo:
+                json.dump(texto, archivo)
+
             categorias= []
             juegos = []
         ################################################################### ahora ver si uso el arbol o no
         if usarArbol: #osea true
-            df_juegos, csv_juegos = devolverJuegosFormatoCSV(juegos)
-            direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/x_{Id}.csv'
-            x=pd.read_csv(direccion,sep=';')
-            # necesito saber las features que faltan en el que vamos a predecir
-            training_features = list(x.columns)
-
-            # si falta alguno le pongo 0
-            for feature in training_features:
-                if feature not in df_juegos.columns:
-                    df_juegos[feature] = 0
-
-            # si tengo un nuevo dato que no estan en el modelo que entrene lo borro
-            for feature in df_juegos.columns:
-                if feature not in training_features:
-                    if feature in df_juegos.columns:
-                        df_juegos = df_juegos.drop(columns=[feature])
-            df_juegos = df_juegos[training_features]
-            #traigo arbol
-            direccion = f"C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/ArbolesPersonalisados/arbol_{Id}.pkl"
-            modelo = joblib.load(direccion)
-            result = modelo.predict(df_juegos)
-            print("predije esto pa")
-            print(result)
-            print("los nombres")
-            print(csv_juegos)
-            # me quedo con los juegos que predicen bien
-            print(len(result))
-            print(len(csv_juegos))
-            j = 0
-            for i in range(len(result)):
-                if result[i] == 0:
-                    csv_juegos.pop(j)
-                else:
-                    j += 1
-                print(i)
-                print(j)
-            print(csv_juegos)
-            print(len(csv_juegos))
-            if len(csv_juegos) > 0:
-                nro = random.randint(0, len(csv_juegos) - 1)
-                juegocsv = csv_juegos.pop(nro)
-                # Dividir la cadena usando la coma como delimitador
-                partes = juegocsv.split(';')
-                # Obtener el primer elemento de la lista
-                juego = partes[0]
-            else:
-                usarArbol = False
-                respuesta = devolverJuegos(categorias)
-                juego= random.choice(respuesta) 
+            nro = random.randint(0, len(csv_juegos) - 1)
+            juegocsv = csv_juegos.pop(nro)
+            # Dividir la cadena usando la coma como delimitador
+            partes = juegocsv.split(';')
+            # Obtener el primer elemento de la lista
+            juego = partes[0]
         else:
             respuesta = devolverJuegos(categorias)
+            respuesta = [juego for juego in respuesta if juego not in juegos]
             juego= random.choice(respuesta)
         
         if usarArbol:
@@ -371,19 +358,123 @@ class ActionPrimerJuego(Action):
         dispatcher.utter_message(image=image_path)
         juegos.append(juego)
         print(csv_juegos)
+        if not nuevoUsuario:
+            return [SlotSet("FueChau", False), SlotSet("id", Id), SlotSet("nombre", user_name), SlotSet("juegos", juegos), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categorias), SlotSet("juegosSesionActual", juegosActuales), SlotSet("juegosTipoCSV", csv_juegos)]
+        else:
+            JuegosGustan=[]
+            JuegosNoGustan=[]
+            nombre = nombre_valor
+            return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", False), SlotSet("id", Id), SlotSet("nombre", nombre), SlotSet("juegos", juegos), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categorias), SlotSet("juegosSesionActual", juegosActuales), SlotSet("juegosTipoCSV", csv_juegos)]
 
-        return [SlotSet("id", Id), SlotSet("nombre", user_name), SlotSet("juegos", juegos), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categorias), SlotSet("juegosSesionActual", juegosActuales), SlotSet("juegosTipoCSV", csv_juegos)]
-    
 class ActionDevolverJuego(Action):
     def name(self) -> Text:
         return "action_devolver_juego"
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        usarArbol = tracker.get_slot("usarArbol")
-        juegos= tracker.get_slot("juegos")
-        csv_juegos = tracker.get_slot("juegosTipoCSV")
-        juegosSesionActual = tracker.get_slot("juegosSesionActual")
+        input_data=tracker.latest_message
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        nombre = tracker.get_slot("nombre")
+        print(fueChau)
+        cargarPerfil=False
+        if (IdActual != idSlot):
+            cargarPerfil=True
+            texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+            fila = texto[texto['ID'] == IdActual]
+            existeValor=False
+            Chau=True
+            if not fila.empty: #tengo que cargar los slots
+                existeValor=True
+                Chau = fila['Chau'].values[0]
+            if fueChau==False: # como anterior no chau lo tengo que guardar
+                if (existeValor==False) or (existeValor==True and Chau==True): # guardo y voy a inicio
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo cargo perfil nuevo y guardo viejo
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = []
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+            else: # no tengo que guardar el anterior
+                if (existeValor==False) or (existeValor==True and Chau==True): # voy a inicio sin guardar
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo el pefil nomas
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = []
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+        if not cargarPerfil:
+            usarArbol = tracker.get_slot("usarArbol")
+            csv_juegos = tracker.get_slot("juegosTipoCSV")
+            juegos= tracker.get_slot("juegos")
+            juegosSesionActual = tracker.get_slot("juegosSesionActual")
+            categorias = tracker.get_slot("categorias")
+        else:
+            juegos= []
+            juegosSesionActual = []
+            nombre = nombre_valor
+
         if len(csv_juegos) == 0:
             usarArbol=False
         if usarArbol:
@@ -397,7 +488,6 @@ class ActionDevolverJuego(Action):
             image_path = f"{imagen}"
             juegosSesionActual.append(juegocsv)
         else:
-            categorias = tracker.get_slot("categorias")
             respuesta = devolverJuegos(categorias)
             diferentesResultados= [item for item in respuesta if item not in juegos]
             juego=None
@@ -433,8 +523,12 @@ class ActionDevolverJuego(Action):
             dispatcher.utter_message(image=image_path)
         if juego:
             juegos.append(juego)
-
-        return [SlotSet("juegos", juegos), SlotSet("juegosSesionActual", juegosSesionActual), SlotSet("juegosTipoCSV", csv_juegos)]
+        if not cargarPerfil:
+            return [SlotSet("juegos", juegos),SlotSet("juegosSesionActual", juegosSesionActual),SlotSet("juegosTipoCSV", csv_juegos),SlotSet("FueChau", False)]
+        else:
+            JuegosGustan=[]
+            JuegosNoGustan=[]
+            return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", False), SlotSet("id", IdActual), SlotSet("nombre", nombre), SlotSet("juegos", juegos), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categorias), SlotSet("juegosSesionActual", juegosSesionActual), SlotSet("juegosTipoCSV", csv_juegos)]
    
 class ActionDevolverCategorias(Action):
     def name(self) -> Text:
@@ -442,14 +536,123 @@ class ActionDevolverCategorias(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        juegos= tracker.get_slot("juegos")
-        juego= juegos[-1]
-        categorias= devolverCategorias(juego)
-        imprimir = ", ".join([f'"{categoria}"' for categoria in categorias])
-        message = f"las categorias del juego {juego} son: {imprimir}"
+        input_data=tracker.latest_message
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        nombre = tracker.get_slot("nombre")
+        print(fueChau)
+        cargarPerfil=False
+        if (IdActual != idSlot):
+            cargarPerfil=True
+            texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+            fila = texto[texto['ID'] == IdActual]
+            existeValor=False
+            Chau=True
+            if not fila.empty: #tengo que cargar los slots
+                existeValor=True
+                Chau = fila['Chau'].values[0]
+            if fueChau==False: # como anterior no chau lo tengo que guardar
+                if (existeValor==False) or (existeValor==True and Chau==True): # guardo y voy a inicio
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo cargo perfil nuevo y guardo viejo
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+            else: # no tengo que guardar el anterior
+                if (existeValor==False) or (existeValor==True and Chau==True): # voy a inicio sin guardar
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo el pefil nomas
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+        juego=None
+        if not cargarPerfil:
+            juegos= tracker.get_slot("juegos")
+            if len(juegos) > 0:
+                juego= juegos[-1]
+            else:
+                message = f"pero si no te dije ningun juego"
+        else:  
+            juego=ultimo_juego
+            nombre = nombre_valor
+        if juego:
+            categorias= devolverCategorias(juego)
+            imprimir = ", ".join([f'"{categoria}"' for categoria in categorias])
+            message = f"las categorias del juego {juego} son: {imprimir}"
         dispatcher.utter_message(text=message)
-
-        return []
+        if not cargarPerfil:
+            return [SlotSet("FueChau", False)]
+        else:
+            JuegosGustan=[]
+            JuegosNoGustan=[]
+            if juego:
+                juegosSesionActual= [imprimirJuegoUnico(juego)]
+            else:
+                juegosSesionActual= []
+            return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", False), SlotSet("id", IdActual), SlotSet("nombre", nombre), SlotSet("juegos", juegos), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categorias), SlotSet("juegosSesionActual", juegosSesionActual), SlotSet("juegosTipoCSV", csv_juegos)]
 
 class ActionDevolverLink(Action):
     def name(self) -> Text:
@@ -457,13 +660,125 @@ class ActionDevolverLink(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        juegos= tracker.get_slot("juegos")
-        juego= juegos[-1]
-        link= devolverLink(juego)
-        message = f"el link de compra del juego {juego} es: {link}"
+        input_data=tracker.latest_message
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        nombre = tracker.get_slot("nombre")
+        print(fueChau)
+        print(IdActual)
+        print(idSlot)
+        cargarPerfil=False
+        if (IdActual != idSlot):
+            cargarPerfil=True
+            texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+            fila = texto[texto['ID'] == IdActual]
+            existeValor=False
+            Chau=True
+            if not fila.empty: #tengo que cargar los slots
+                existeValor=True
+                Chau = fila['Chau'].values[0]
+            if fueChau==False: # como anterior no chau lo tengo que guardar
+                if (existeValor==False) or (existeValor==True and Chau==True): # guardo y voy a inicio
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo cargo perfil nuevo y guardo viejo
+                    print("acaaaaaa")
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+            else: # no tengo que guardar el anterior
+                if (existeValor==False) or (existeValor==True and Chau==True): # voy a inicio sin guardar
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo el pefil nomas
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+        juego=None
+        if not cargarPerfil:
+            juegos= tracker.get_slot("juegos")
+            if len(juegos) > 0:
+                juego= juegos[-1]
+            else:
+                message = f"pero si no te dije ningun juego"
+        else:  
+            juego=ultimo_juego
+            nombre = nombre_valor
+        if juego:
+            link= devolverLink(juego)
+            message = f"el link de compra del juego {juego} es: {link}"
         dispatcher.utter_message(text=message)
-
-        return []
+        if not cargarPerfil:
+            return [SlotSet("FueChau", False)]
+        else:
+            JuegosGustan=[]
+            JuegosNoGustan=[]
+            if juego:
+                juegosSesionActual= [imprimirJuegoUnico(juego)]
+            else:
+                juegosSesionActual= []
+            return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", False), SlotSet("id", IdActual), SlotSet("nombre", nombre), SlotSet("juegos", juegos), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categorias), SlotSet("juegosSesionActual", juegosSesionActual), SlotSet("juegosTipoCSV", csv_juegos)]
     
 class ActionDevolverSinopsis(Action):
     def name(self) -> Text:
@@ -471,13 +786,123 @@ class ActionDevolverSinopsis(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        juegos= tracker.get_slot("juegos")
-        juego= juegos[-1]
-        link= devolverSinopsis(juego)
-        message = f"la sinopsis del juego {juego} es: {link}"
+        input_data=tracker.latest_message
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        nombre = tracker.get_slot("nombre")
+        print(fueChau)
+        cargarPerfil=False
+        if (IdActual != idSlot):
+            cargarPerfil=True
+            texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+            fila = texto[texto['ID'] == IdActual]
+            existeValor=False
+            Chau=True
+            if not fila.empty: #tengo que cargar los slots
+                existeValor=True
+                Chau = fila['Chau'].values[0]
+            if fueChau==False: # como anterior no chau lo tengo que guardar
+                if (existeValor==False) or (existeValor==True and Chau==True): # guardo y voy a inicio
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo cargo perfil nuevo y guardo viejo
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+            else: # no tengo que guardar el anterior
+                if (existeValor==False) or (existeValor==True and Chau==True): # voy a inicio sin guardar
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    return [ActionExecuted("action_first")]
+                else: #cargo el pefil nomas
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+        juego=None
+        if not cargarPerfil:
+            juegos= tracker.get_slot("juegos")
+            if len(juegos) > 0:
+                juego= juegos[-1]
+            else:
+                message = f"pero si no te dije ningun juego"
+        else:  
+            juego=ultimo_juego
+            nombre = nombre_valor
+        if juego:
+            link= devolverSinopsis(juego)
+            message = f"la sinopsis del juego {juego} es: {link}"
         dispatcher.utter_message(text=message)
+        if not cargarPerfil:
+            return [SlotSet("FueChau", False)]
+        else:
+            JuegosGustan=[]
+            JuegosNoGustan=[]
+            if juego:
+                juegosSesionActual= [imprimirJuegoUnico(juego)]
+            else:
+                juegosSesionActual= []
+            return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", False), SlotSet("id", IdActual), SlotSet("nombre", nombre), SlotSet("juegos", juegos), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categorias), SlotSet("juegosSesionActual", juegosSesionActual), SlotSet("juegosTipoCSV", csv_juegos)]
 
-        return []
     
 class ActionDevolverJuegoParecido(Action):
     def name(self) -> Text:
@@ -485,47 +910,154 @@ class ActionDevolverJuegoParecido(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        juegosRecomendados= tracker.get_slot("juegos")
-        juegoAnterior= juegosRecomendados[-1]
-        categorias= devolverCategorias(juegoAnterior)
-        juegosParecidos= devolverJuegos(categorias)
-        juegosSesionActual = tracker.get_slot("juegosSesionActual")
-
-        diferentesResultados= [item for item in juegosParecidos if item not in juegosRecomendados]
-        juego=None
-        image_path=None
-        if diferentesResultados:
-            juego= random.choice(diferentesResultados)
-            csv = imprimirJuegoUnico(juego)
-            juegosSesionActual.append(csv)
-            imagen= devolverImagenes(juego)
-            message = f"Entonces te puedo recomendar el siguiente juego que es parecido a {juegoAnterior}: {juego}"
-            image_path = f"{imagen}"
+        input_data=tracker.latest_message
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        nombre = tracker.get_slot("nombre")
+        print(fueChau)
+        cargarPerfil=False
+        if (IdActual != idSlot):
+            cargarPerfil=True
+            texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+            fila = texto[texto['ID'] == IdActual]
+            existeValor=False
+            Chau=True
+            if not fila.empty: #tengo que cargar los slots
+                existeValor=True
+                Chau = fila['Chau'].values[0]
+            if fueChau==False: # como anterior no chau lo tengo que guardar
+                if (existeValor==False) or (existeValor==True and Chau==True): # guardo y voy a inicio
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo cargo perfil nuevo y guardo viejo
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+            else: # no tengo que guardar el anterior
+                if (existeValor==False) or (existeValor==True and Chau==True): # voy a inicio sin guardar
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo el pefil nomas
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+        if not cargarPerfil:
+            juegosRecomendados= tracker.get_slot("juegos")
+            juegosSesionActual = tracker.get_slot("juegosSesionActual")
         else:
-            categoriasIgnoradas= []
-            while not diferentesResultados and categorias:     
-                last_element = categorias[-1]  # Get the last element
-                categoriasIgnoradas.append(last_element)
-                categorias.pop()  # Remove the last element from the list
-                respuesta = devolverJuegos(categorias)
-                diferentesResultados= [item for item in respuesta if item not in juegosRecomendados]
+            juegosRecomendados= [ultimo_juego]
+            if ultimo_juego:
+                juegosSesionActual= [imprimirJuegoUnico(ultimo_juego)]
+            else:
+                juegosSesionActual= []
+            nombre = nombre_valor
+        if len(juegosRecomendados) > 0:
+            juegoAnterior= juegosRecomendados[-1]
+            categorias= devolverCategorias(juegoAnterior)
+            juegosParecidos= devolverJuegos(categorias)
+            diferentesResultados= [item for item in juegosParecidos if item not in juegosRecomendados]
+            juego=None
+            image_path=None
             if diferentesResultados:
-                imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
                 juego= random.choice(diferentesResultados)
                 csv = imprimirJuegoUnico(juego)
                 juegosSesionActual.append(csv)
                 imagen= devolverImagenes(juego)
+                message = f"Entonces te puedo recomendar el siguiente juego que es parecido a {juegoAnterior}: {juego}"
                 image_path = f"{imagen}"
-                message = f"no tengo mas juegos parecidos a {juegoAnterior}, tuve que ignorar las siguientes categorias: {imprimir}, que tal este para cambiar un poco: {juego}"
             else:
-                message = f"ya te recomende todos los juegos flaquito juga alguno"
+                categoriasIgnoradas= []
+                while not diferentesResultados and categorias:     
+                    last_element = categorias[-1]  # Get the last element
+                    categoriasIgnoradas.append(last_element)
+                    categorias.pop()  # Remove the last element from the list
+                    respuesta = devolverJuegos(categorias)
+                    diferentesResultados= [item for item in respuesta if item not in juegosRecomendados]
+                if diferentesResultados:
+                    imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasIgnoradas])
+                    juego= random.choice(diferentesResultados)
+                    csv = imprimirJuegoUnico(juego)
+                    juegosSesionActual.append(csv)
+                    imagen= devolverImagenes(juego)
+                    image_path = f"{imagen}"
+                    message = f"no tengo mas juegos parecidos a {juegoAnterior}, tuve que ignorar las siguientes categorias: {imprimir}, que tal este para cambiar un poco: {juego}"
+                else:
+                    message = f"ya te recomende todos los juegos flaquito juga alguno"
+        else:
+            message = f"pero no te dije ningun juego"
 
         dispatcher.utter_message(text=message)
         if image_path:
             dispatcher.utter_message(image=image_path)
         if juego:
             juegosRecomendados.append(juego)
-        return [SlotSet("juegos", juegosRecomendados), SlotSet("juegosSesionActual", juegosSesionActual)]
+        if not cargarPerfil:
+                return [SlotSet("juegos", juegosRecomendados),SlotSet("juegosSesionActual", juegosSesionActual),SlotSet("FueChau", False)]
+        else:
+            JuegosGustan=[]
+            JuegosNoGustan=[]
+            return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", False), SlotSet("id", IdActual), SlotSet("nombre", nombre), SlotSet("juegos", juegos), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categorias), SlotSet("juegosSesionActual", juegosSesionActual), SlotSet("juegosTipoCSV", csv_juegos)]
 
 class ActionSetearCategorias(Action):
     def name(self) -> Text:
@@ -533,38 +1065,247 @@ class ActionSetearCategorias(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        juegosRecomendados = tracker.get_slot("juegosSesionActual")
-        print("que paso ahora")
-        print(juegosRecomendados)
-        juegoAnterior= juegosRecomendados[-1]
-        juegos= tracker.get_slot("juegos")
-        juego= juegos[-1]
-        categorias= devolverCategorias(juego)
-        JuegosGustan= tracker.get_slot("juegosGustan")
-        if juegoAnterior not in JuegosGustan:
-            JuegosGustan.append(juegoAnterior) #juego que le gusto
-        message = f"Me alegro que te haya gustado el juego {juego}, lo tendre en cuenta entonces"
+        input_data=tracker.latest_message
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        nombre = tracker.get_slot("nombre")
+        print(fueChau)
+        cargarPerfil=False
+        if (IdActual != idSlot):
+            cargarPerfil=True
+            texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+            fila = texto[texto['ID'] == IdActual]
+            existeValor=False
+            Chau=True
+            if not fila.empty: #tengo que cargar los slots
+                existeValor=True
+                Chau = fila['Chau'].values[0]
+            if fueChau==False: # como anterior no chau lo tengo que guardar
+                if (existeValor==False) or (existeValor==True and Chau==True): # guardo y voy a inicio
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo cargo perfil nuevo y guardo viejo
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+            else: # no tengo que guardar el anterior
+                if (existeValor==False) or (existeValor==True and Chau==True): # voy a inicio sin guardar
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo el pefil nomas
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+        if not cargarPerfil:
+            juegosRecomendados = tracker.get_slot("juegosSesionActual")
+            JuegosGustan= tracker.get_slot("juegosGustan")
+            categorias= tracker.get_slot("categorias")
+            juegos= tracker.get_slot("juegos")
+        else:
+            juegos=[ultimo_juego]
+            juegosRecomendados=[imprimirJuegoUnico(juego)]
+            JuegosGustan= []
+            nombre = nombre_valor
+        if len(juegosRecomendados) > 0:
+            juegoAnterior= juegosRecomendados[-1]
+            juego= juegos[-1]
+            categorias= devolverCategorias(juego)
+            if juegoAnterior not in JuegosGustan:
+                JuegosGustan.append(juegoAnterior) #juego que le gusto
+            message = f"Me alegro que te haya gustado el juego {juego}, lo tendre en cuenta entonces"
+        else:
+            message = f"pero si no te dije ningun juego"
         dispatcher.utter_message(text=message)
-        return [SlotSet("categorias", categorias), SlotSet("juegosGustan", JuegosGustan)] 
+        if not cargarPerfil:
+            return [SlotSet("categorias", categorias),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", False)] 
+        else:
+            JuegosNoGustan=[]
+            return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", False), SlotSet("id", IdActual), SlotSet("nombre", nombre), SlotSet("juegos", juegos), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categorias), SlotSet("juegosSesionActual", juegosRecomendados), SlotSet("juegosTipoCSV", csv_juegos)]
 
-class ActionPreguntarCategorias(Action):
+class ActionPreguntarCategorias(Action): ######### aca para abajo
     def name(self) -> Text:
         return "action_preguntar_categorias"
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        juegosRecomendados= tracker.get_slot("juegosSesionActual")
-        juegoAnterior= juegosRecomendados[-1]
-        JuegosNoGustan= tracker.get_slot("juegosNoGustan")
-        if juegoAnterior not in JuegosNoGustan:
-            JuegosNoGustan.append(juegoAnterior)#juego que no le gusto
-        juegos= tracker.get_slot("juegos")
-        juego= juegos[-1]
-        categorias= devolverCategorias(juego)
-        imprimir = ", ".join([f'"{categoria}"' for categoria in categorias])
-        message = f"cual de las categorias del juego {juego} no te gustaron? son las siguientes: {imprimir}"
+        input_data=tracker.latest_message
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        nombre = tracker.get_slot("nombre")
+        print(fueChau)
+        cargarPerfil=False
+        if (IdActual != idSlot):
+            cargarPerfil=True
+            texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+            fila = texto[texto['ID'] == IdActual]
+            existeValor=False
+            Chau=True
+            if not fila.empty: #tengo que cargar los slots
+                existeValor=True
+                Chau = fila['Chau'].values[0]
+            if fueChau==False: # como anterior no chau lo tengo que guardar
+                if (existeValor==False) or (existeValor==True and Chau==True): # guardo y voy a inicio
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo cargo perfil nuevo y guardo viejo
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+            else: # no tengo que guardar el anterior
+                if (existeValor==False) or (existeValor==True and Chau==True): # voy a inicio sin guardar
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo el pefil nomas
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+        if not cargarPerfil:
+            juegosRecomendados= tracker.get_slot("juegosSesionActual")
+            JuegosNoGustan= tracker.get_slot("juegosNoGustan")
+            juegos= tracker.get_slot("juegos")
+        else:
+            juegosSesionActual= [imprimirJuegoUnico(ultimo_juego)]
+            JuegosNoGustan= []
+            juegos= [ultimo_juego]
+            nombre = nombre_valor
+        if len(juegosRecomendados) > 0:
+            juegoAnterior= juegosRecomendados[-1]
+            if juegoAnterior not in JuegosNoGustan:
+                JuegosNoGustan.append(juegoAnterior)#juego que no le gusto
+            juego= juegos[-1]
+            categorias= devolverCategorias(juego)
+            imprimir = ", ".join([f'"{categoria}"' for categoria in categorias])
+            message = f"cual de las categorias del juego {juego} no te gustaron? son las siguientes: {imprimir}"
+        else:
+            message = f"pero no te dije ningun juego"
         dispatcher.utter_message(text=message)
-        return [SlotSet("juegosNoGustan", JuegosNoGustan)]
+        if not cargarPerfil:
+            return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("FueChau", False)]
+        else:
+            JuegosGustan=[]
+            return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", False), SlotSet("id", IdActual), SlotSet("nombre", nombre), SlotSet("juegos", juegos), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categorias), SlotSet("juegosSesionActual", juegosSesionActual), SlotSet("juegosTipoCSV", csv_juegos)]
     
 class ActionBorrarCategorias(Action):
     def name(self) -> Text:
@@ -572,6 +1313,98 @@ class ActionBorrarCategorias(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
+        input_data=tracker.latest_message
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        nombre = tracker.get_slot("nombre")
+        print(fueChau)
+        cargarPerfil=False
+        if (IdActual != idSlot):
+            cargarPerfil=True
+            texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+            fila = texto[texto['ID'] == IdActual]
+            existeValor=False
+            Chau=True
+            if not fila.empty: #tengo que cargar los slots
+                existeValor=True
+                Chau = fila['Chau'].values[0]
+            if fueChau==False: # como anterior no chau lo tengo que guardar
+                if (existeValor==False) or (existeValor==True and Chau==True): # guardo y voy a inicio
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo cargo perfil nuevo y guardo viejo
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+            else: # no tengo que guardar el anterior
+                if (existeValor==False) or (existeValor==True and Chau==True): # voy a inicio sin guardar
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo el pefil nomas
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
         # Get the entities from the last user message
         latest_entities = tracker.latest_message.get('entities', [])
         # Filter the entities based on the entity name
@@ -581,7 +1414,11 @@ class ActionBorrarCategorias(Action):
             resultado= ExisteCategoria(valor)
             if resultado != "true":
                 categoriasNoLeGustan.remove(valor)
-        categoriasActuales= tracker.get_slot("categorias")
+        if not cargarPerfil:
+            categoriasActuales= tracker.get_slot("categorias")
+        else:
+            categoriasActuales=categorias#las del texto
+            nombre = nombre_valor
         categorias= [item for item in categoriasActuales if item not in categoriasNoLeGustan]
         if categoriasNoLeGustan:
             imprimir = ", ".join([f'"{categoria}"' for categoria in categoriasNoLeGustan])
@@ -589,7 +1426,16 @@ class ActionBorrarCategorias(Action):
         else:
             message = f"gracias por la data pero igual no conosco esas categorias jejeje"
         dispatcher.utter_message(text=message)
-        return [SlotSet("categorias", categorias)]
+        if not cargarPerfil:
+            return [SlotSet("categorias", categorias),SlotSet("FueChau", False)]
+        else:
+            JuegosGustan=[]
+            JuegosNoGustan=[]
+            if ultimo_juego:
+                juegosSesionActual= [imprimirJuegoUnico(ultimo_juego)]
+            else:
+                juegosSesionActual= []
+            return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", False), SlotSet("id", IdActual), SlotSet("nombre", nombre), SlotSet("juegos", juegos), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categorias), SlotSet("juegosSesionActual", juegosSesionActual), SlotSet("juegosTipoCSV", csv_juegos)]
     
 class ActionDevolverJuegoEnBaseAJuego(Action):
     def name(self) -> Text:
@@ -597,12 +1443,112 @@ class ActionDevolverJuegoEnBaseAJuego(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        
+        input_data=tracker.latest_message
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        nombre = tracker.get_slot("nombre")
+        print(fueChau)
+        cargarPerfil=False
+        if (IdActual != idSlot):
+            cargarPerfil=True
+            texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+            fila = texto[texto['ID'] == IdActual]
+            existeValor=False
+            Chau=True
+            if not fila.empty: #tengo que cargar los slots
+                existeValor=True
+                Chau = fila['Chau'].values[0]
+            if fueChau==False: # como anterior no chau lo tengo que guardar
+                if (existeValor==False) or (existeValor==True and Chau==True): # guardo y voy a inicio
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo cargo perfil nuevo y guardo viejo
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+            else: # no tengo que guardar el anterior
+                if (existeValor==False) or (existeValor==True and Chau==True): # voy a inicio sin guardar
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo el pefil nomas
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+
+        if cargarPerfil:
+            if ultimo_juego:
+                juegosSesionActual= [imprimirJuegoUnico(ultimo_juego)]
+            else:
+                juegosSesionActual= []
+            juegosRecomendados= [ultimo_juego]
+            nombre = nombre_valor
+        else:
+            juegosSesionActual = tracker.get_slot("juegosSesionActual")
+            juegosRecomendados= tracker.get_slot("juegos")
         latest_entities = tracker.latest_message.get('entities', [])
         juegos = [entity['value'] for entity in latest_entities if entity['entity'] == 'juego']
-        juegosSesionActual = tracker.get_slot("juegosSesionActual")
         juegos = [capitalize_first_char(item) for item in juegos]
-        juegosRecomendados= tracker.get_slot("juegos")
         juegosRecomendados = [capitalize_first_char(item) for item in juegosRecomendados]
         for valor in juegos: #reviso que las categorias existan
             resultado= ExisteJuego(valor)
@@ -650,7 +1596,13 @@ class ActionDevolverJuegoEnBaseAJuego(Action):
         dispatcher.utter_message(text=message)
         if image_path:
             dispatcher.utter_message(image=image_path)
-        return [SlotSet("juegos", juegosRecomendados), SlotSet("juegosSesionActual", juegosSesionActual)]
+    
+        if not cargarPerfil:
+                return [SlotSet("juegos", juegosRecomendados),SlotSet("juegosSesionActual", juegosSesionActual),SlotSet("FueChau", False)]
+        else:
+            JuegosGustan=[]
+            JuegosNoGustan=[]
+            return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", False), SlotSet("id", IdActual), SlotSet("nombre", nombre), SlotSet("juegos", juegosRecomendados), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categorias), SlotSet("juegosSesionActual", juegosSesionActual), SlotSet("juegosTipoCSV", csv_juegos)]
 
     
 class ActionDevolverJuegoEnBaseACategoria(Action):
@@ -659,11 +1611,113 @@ class ActionDevolverJuegoEnBaseACategoria(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        
+        input_data=tracker.latest_message
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        nombre = tracker.get_slot("nombre")
+        print(fueChau)
+        cargarPerfil=False
+        if (IdActual != idSlot):
+            cargarPerfil=True
+            texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+            fila = texto[texto['ID'] == IdActual]
+            existeValor=False
+            Chau=True
+            if not fila.empty: #tengo que cargar los slots
+                existeValor=True
+                Chau = fila['Chau'].values[0]
+            if fueChau==False: # como anterior no chau lo tengo que guardar
+                if (existeValor==False) or (existeValor==True and Chau==True): # guardo y voy a inicio
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo cargo perfil nuevo y guardo viejo
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+            else: # no tengo que guardar el anterior
+                if (existeValor==False) or (existeValor==True and Chau==True): # voy a inicio sin guardar
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo el pefil nomas
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categoriasGuardar = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+
+        if cargarPerfil:
+            if ultimo_juego:
+                juegosSesionActual= [imprimirJuegoUnico(ultimo_juego)]
+            else:
+                juegosSesionActual= []
+            juegosRecomendados= [ultimo_juego]
+            nombre = nombre_valor
+        else:
+            juegosSesionActual = tracker.get_slot("juegosSesionActual")
+            juegosRecomendados= tracker.get_slot("juegos")
+
         latest_entities = tracker.latest_message.get('entities', [])
         categorias = [entity['value'] for entity in latest_entities if entity['entity'] == 'categoria']
         categorias = [capitalize_first_char(item) for item in categorias]
-        juegosSesionActual = tracker.get_slot("juegosSesionActual")
         categorias = list(set(categorias)) #elimino repetidos
         for valor in categorias: #reviso que las categorias existan
             resultado= ExisteCategoria(valor)
@@ -671,7 +1725,6 @@ class ActionDevolverJuegoEnBaseACategoria(Action):
                 categorias.remove(valor)
         image_path=None
         juegoADecir= None
-        juegosRecomendados= tracker.get_slot("juegos")
         if categorias:
             categorias= categorias[:3] #limito categorias a 3
             juegosParecidos= devolverJuegos(categorias)
@@ -711,8 +1764,13 @@ class ActionDevolverJuegoEnBaseACategoria(Action):
         if image_path: 
             dispatcher.utter_message(image=image_path)
         if juegoADecir:
-            juegosRecomendados.append(juegoADecir)
-        return [SlotSet("juegos", juegosRecomendados), SlotSet("juegosSesionActual", juegosSesionActual)]
+            juegosRecomendados.append(juegoADecir)    
+        if not cargarPerfil:
+                return [SlotSet("juegos", juegosRecomendados),SlotSet("juegosSesionActual", juegosSesionActual),SlotSet("FueChau", False)]
+        else:
+            JuegosGustan=[]
+            JuegosNoGustan=[]
+            return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", False), SlotSet("id", IdActual), SlotSet("nombre", nombre), SlotSet("juegos", juegosRecomendados), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categoriasGuardar), SlotSet("juegosSesionActual", juegosSesionActual), SlotSet("juegosTipoCSV", csv_juegos)]
 
 class ActionPonerCategorias(Action):
     def name(self) -> Text:
@@ -720,12 +1778,107 @@ class ActionPonerCategorias(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        
+        input_data=tracker.latest_message
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        nombre = tracker.get_slot("nombre")
+        print(fueChau)
+        cargarPerfil=False
+        if (IdActual != idSlot):
+            cargarPerfil=True
+            texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+            fila = texto[texto['ID'] == IdActual]
+            existeValor=False
+            Chau=True
+            if not fila.empty: #tengo que cargar los slots
+                existeValor=True
+                Chau = fila['Chau'].values[0]
+            if fueChau==False: # como anterior no chau lo tengo que guardar
+                if (existeValor==False) or (existeValor==True and Chau==True): # guardo y voy a inicio
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo cargo perfil nuevo y guardo viejo
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+            else: # no tengo que guardar el anterior
+                if (existeValor==False) or (existeValor==True and Chau==True): # voy a inicio sin guardar
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo el pefil nomas
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+        if not cargarPerfil:
+            categoriasActuales= tracker.get_slot("categorias")
+        else:
+            categoriasActuales=categorias
+            nombre = nombre_valor
         latest_entities = tracker.latest_message.get('entities', [])
         categoriasEntidades = [entity['value'] for entity in latest_entities if entity['entity'] == 'categoria']
         categoriasEntidades = list(set(categoriasEntidades)) #elimino repetidos
         categoriasEntidades = [capitalize_first_char(item) for item in categoriasEntidades]
-        categoriasActuales= tracker.get_slot("categorias")
         for valor in categoriasEntidades:
             resultado= ExisteCategoria(valor)
             if resultado != "true":
@@ -741,24 +1894,24 @@ class ActionPonerCategorias(Action):
                 indice=3
             while len(categoriasActuales) < indice: #pongo elementos vacios para poder hacer categoriasaActuales[i]
                 categoriasActuales.append(None)
-            print(tamanioActuales)
-            print(tamanioDif)
-            print(categoriasActuales)
-            print(categorias)
-
             while (indice != 0) and (tamanioDif != 0):
                 indice -= 1
                 tamanioDif -= 1
-                print(indice)
-                print(tamanioDif)
                 categoriasActuales[indice] = categorias[tamanioDif]
             message = f"voy a tener encuenta que te gustan esas categorias entonces"
         else:
-            message = f"Disculpa no conosco esa categoria o ya se que te gusta nose una de 2"
-        print(categoriasEntidades)
-        print(categoriasActuales)            
+            message = f"Disculpa no conosco esa categoria o ya se que te gusta nose una de 2"          
         dispatcher.utter_message(text=message)
-        return [SlotSet("categorias", categoriasActuales)]
+        if not cargarPerfil:
+                return [SlotSet("categorias", categoriasActuales),SlotSet("FueChau", False)]
+        else:
+            JuegosGustan=[]
+            JuegosNoGustan=[]
+            if ultimo_juego:
+                juegosSesionActual= [imprimirJuegoUnico(ultimo_juego)]
+            else:
+                juegosSesionActual= []
+            return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", False), SlotSet("id", IdActual), SlotSet("nombre", nombre), SlotSet("juegos", juegos), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categoriasActuales), SlotSet("juegosSesionActual", juegosSesionActual), SlotSet("juegosTipoCSV", csv_juegos)]
 
 class ActionDevolverJuegoRandom(Action):
     def name(self) -> Text:
@@ -766,9 +1919,107 @@ class ActionDevolverJuegoRandom(Action):
     def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
+        input_data=tracker.latest_message
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        nombre = tracker.get_slot("nombre")
+        cargarPerfil=False
+        if (IdActual != idSlot):
+            cargarPerfil=True
+            texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+            fila = texto[texto['ID'] == IdActual]
+            existeValor=False
+            Chau=True
+            if not fila.empty: #tengo que cargar los slots
+                existeValor=True
+                Chau = fila['Chau'].values[0]
+            if fueChau==False: # como anterior no chau lo tengo que guardar
+                if (existeValor==False) or (existeValor==True and Chau==True): # guardo y voy a inicio
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo cargo perfil nuevo y guardo viejo
+                    # Resto de tu código aquí...
+                    id = tracker.get_slot("id")
+                    nombre = tracker.get_slot("nombre")
+                    Categorias = tracker.get_slot("categorias")
+                    JuegosGustan = tracker.get_slot("juegosGustan")
+                    JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+                    Juegos = tracker.get_slot("juegos")
+                    if len(Juegos) > 0:
+                        juego = Juegos[-1]
+                    else:
+                        juego = None
+                    Juegoslista = tracker.get_slot("juegosTipoCSV")
+                    guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+            else: # no tengo que guardar el anterior
+                if (existeValor==False) or (existeValor==True and Chau==True): # voy a inicio sin guardar
+                    message = "Deci hola antes no?"
+                    dispatcher.utter_message(text=message)
+                    return [ ActionExecuted("action_first")]
+                else: #cargo el pefil nomas
+                    id_valor = fila['ID'].values[0]
+                    nombre_valor = fila['Nombre'].values[0]
+                    categorias = ast.literal_eval(fila['Categorias'].values[0])
+                    ultimo_juego = fila['LastGame'].values[0]
+                    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                    try:
+                        with open(direccion, 'r') as archivo:
+                            contenido = archivo.read()
+                            if contenido.strip():  # Verifica si el contenido no está vacío
+                                csv_juegos = json.loads(contenido)
+                            else:
+                                csv_juegos = []  # Si está vacío, asigna una lista vacía
+                    except json.decoder.JSONDecodeError:
+                        csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                    juegos = [ultimo_juego]
+                    if len(csv_juegos) > 0:
+                        usarArbol = True
+                    else:
+                        usarArbol = False
+        if not cargarPerfil:
+            juegos= tracker.get_slot("juegos")
+            juegosSesionActual = tracker.get_slot("juegosSesionActual")
+        else:
+            if ultimo_juego:
+                juegosSesionActual= [imprimirJuegoUnico(ultimo_juego)]
+            else:
+                juegosSesionActual= []
+            nombre = nombre_valor
         respuesta = devolverJuegos([])
-        juegos= tracker.get_slot("juegos")
-        juegosSesionActual = tracker.get_slot("juegosSesionActual")
         diferentesResultados= [item for item in respuesta if item not in juegos]
         juego=None
         image_path=None
@@ -781,89 +2032,61 @@ class ActionDevolverJuegoRandom(Action):
             juegosSesionActual.append(csv)
         else:
             message = f"ya te recomende todos los juegos flaquito juga alguno"
-
         dispatcher.utter_message(text=message)
         if image_path:
             dispatcher.utter_message(image=image_path)
         if juego:
             juegos.append(juego)
+        if not cargarPerfil:
+            return [SlotSet("juegos", juegos),SlotSet("juegosSesionActual", juegosSesionActual),SlotSet("FueChau", False)]
+        else:
+            JuegosGustan=[]
+            JuegosNoGustan=[]
+            return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", False), SlotSet("id", IdActual), SlotSet("nombre", nombre), SlotSet("juegos", juegos), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categorias), SlotSet("juegosSesionActual", juegosSesionActual), SlotSet("juegosTipoCSV", csv_juegos)]
 
-        return [SlotSet("juegos", juegos), SlotSet("juegosSesionActual", juegosSesionActual)]
+## de aca para arriba
 
-class ActionDevolverTodasLasCategorias(Action):
-    def name(self) -> Text:
-        return "action_devolver_todas_las_categorias"
-    async def run(
-      self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
-    ) -> List[Dict[Text, Any]]:
-        respuesta = devolverTodasLasCategorias()
-        imprimir = ", ".join([f'"{categoria}"' for categoria in respuesta])
-        message = f"Las categorias que conosco son: {imprimir}"
-        dispatcher.utter_message(text=message)
-        return []
+def guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, LastGame, Chau, Juegoslista):
+    # Guardar perfil
+    texto = pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv', sep=';')
+    nueva_fila = {'ID': id, 'Nombre': nombre, 'Categorias': Categorias, 'LastGame': LastGame, 'Chau': Chau}
+    indice = texto.index[texto['ID'] == id].tolist()
+    texto.loc[indice[0]] = nueva_fila
+    texto.to_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv', sep=';', index=False)
 
-class ActionGuardarPerfil(Action):
-    def name(self) -> Text:
-        return "action_guardar_Perfil"
-    async def run(
-      self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
-    ) -> List[Dict[Text, Any]]:
-        #guardo perfil
-        id= tracker.get_slot("id")
-        nombre= tracker.get_slot("nombre")
-        Categorias= tracker.get_slot("categorias")
-        texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
-        nueva_fila = {'ID': id, 'Nombre': nombre, 'Categorias': Categorias}
-        indice = texto.index[texto['ID'] == id].tolist() # Buscar el indice de la fila con el ID a reemplazar
-        texto.loc[indice[0]] = nueva_fila # Reemplazar la fila en el DataFrame
-        texto.to_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv', sep=';', index=False)     # Guardar el DataFrame actualizado de vuelta al archivo CSV
+    # Guardar juegos que gustan y no gustan
+    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/data_{id}.csv'
+    df = pd.read_csv(direccion, sep=';')
+    for juegoGusta in JuegosGustan:
+        partes = juegoGusta.split(';')
+        nombre = partes[0]
+        generos = partes[1]
+        desarrollador = partes[2]
+        Palabrasclaves = partes[3]
+        nueva_fila = pd.Series({'nombre': nombre, 'generos': generos, 'desarrollador': desarrollador, 'Palabrasclaves': Palabrasclaves, 'LeGusta': 1})
+        df.loc[len(df.index)] = nueva_fila
 
-        #guardo juegos que gustan y no
-        JuegosGustan= tracker.get_slot("juegosGustan")
-        JuegosGustan = list(set(JuegosGustan)) #elimino repetidos
-        JuegosNoGustan= tracker.get_slot("juegosNoGustan")
-        JuegosNoGustan = list(set(JuegosNoGustan)) #elimino repetidos
-        direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/data_{id}.csv'
-        df=pd.read_csv(direccion,sep=';')
-        for juegoGusta in JuegosGustan:
-            partes = juegoGusta.split(';')
-            print("partes")
-            print(partes)
-            print("partes por separado")
-            nombre = partes[0]
-            generos = partes[1]
-            desarrollador = partes[2]
-            Palabrasclaves = partes[3]
+    for juegoNoGusta in JuegosNoGustan:
+        partes = juegoNoGusta.split(';')
+        nombre = partes[0]
+        generos = partes[1]
+        desarrollador = partes[2]
+        Palabrasclaves = partes[3]
+        nueva_fila = pd.Series({'nombre': nombre, 'generos': generos, 'desarrollador': desarrollador, 'Palabrasclaves': Palabrasclaves, 'LeGusta': 0})
+        df.loc[len(df.index)] = nueva_fila
 
-            print(f'nombre = {nombre}')
-            print(f'generos = {generos}')
-            print(f'desarrollador = {desarrollador}')
-            print(f'Palabrasclaves = {Palabrasclaves}')
-            nueva_fila = pd.Series({'nombre': nombre, 'generos': generos, 'desarrollador': desarrollador, 'Palabrasclaves': Palabrasclaves, 'LeGusta': 1})
-            print("objeto")
-            print(nueva_fila)
-            # Agregar la nueva fila al DataFrame
-            df.loc[len(df.index)] = nueva_fila
-        print("termino los que le gustan")
-        for juegoNoGusta in JuegosNoGustan:
-            partes = juegoNoGusta.split(';')
-            nombre = partes[0]
-            generos = partes[1]
-            desarrollador = partes[2]
-            Palabrasclaves = partes[3]
-            nueva_fila = pd.Series({'nombre': nombre, 'generos': generos, 'desarrollador': desarrollador, 'Palabrasclaves': Palabrasclaves, 'LeGusta': 0})
-            df.loc[len(df.index)] = nueva_fila
-        print("termino los que le no gustan")
-        df.to_csv(direccion, sep=';', index=False, quoting=csv.QUOTE_NONE, escapechar='\\')
-        print(df)
-        # genero el arbol
+    df.to_csv(direccion, sep=';', index=False, quoting=csv.QUOTE_NONE, escapechar='\\')
+    ########################## me guardo nombre juegos
+    juegos = []
+    for nombre in df['nombre']: #me traigo todos los juegos ya recomendados
+        juegos.append(nombre)
+    ################################3
+    if len(juegos) > 7 and (Chau==True):
+        # Generar el árbol
         df = df.drop('nombre', axis='columns')
-
-        # se paro los que son listas
         df['generos'] = df['generos'].str.split(',')
         df['Palabrasclaves'] = df['Palabrasclaves'].str.split(',')
 
-        #hago un one-hot para los que son listas
         generos = MultiLabelBinarizer()
         Palabrasclaves = MultiLabelBinarizer()
         desarrollador = LabelEncoder()
@@ -872,42 +2095,140 @@ class ActionGuardarPerfil(Action):
         Palabrasclaves_encoded = Palabrasclaves.fit_transform(df['Palabrasclaves'])
         desarrollador_encoded = desarrollador.fit_transform(df['desarrollador'])
 
-        #los paso al data frame
         generos_df = pd.DataFrame(generos_encoded, columns=generos.classes_)
         Palabrasclaves_df = pd.DataFrame(Palabrasclaves_encoded, columns=Palabrasclaves.classes_)
         desarrollador_df = pd.DataFrame(desarrollador_encoded, columns=['desarrollador'])
 
-        # Elimino las columnas originales
         df = df.drop(columns=['generos', 'Palabrasclaves', 'desarrollador'])
-
-        #concateno al data frame
         df = pd.concat([df, generos_df, Palabrasclaves_df, desarrollador_df], axis=1)
-
-        #hago el onehot de el dataframe
-        print("antes dummies")
-        print(df)
-        print("despues dummies")
         df = pd.get_dummies(data=df, drop_first=True)
-        print(df)
 
-        #lo preparo para el arbol
         y = df['LeGusta']
         x = df.drop('LeGusta', axis='columns')
-
-        print(x.info())
-
-        #hago el arbol
+        x = x.loc[:,~x.columns.duplicated()]
+        print(x)
         modelo = DecisionTreeClassifier(max_depth=5)
         modelo.fit(x,y)
-        print(modelo.score(x,y))
 
-        # Guardar el modelo
         direccion = f"C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/ArbolesPersonalisados/arbol_{id}.pkl"
         joblib.dump(modelo, direccion)
-        direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/x_{id}.csv'
-        x.to_csv(direccion, sep=';', index=False, quoting=csv.QUOTE_NONE, escapechar='\\')
-        print(x)
-        return []
+        ############################################################################################
+        df_juegos, csv_juegos = devolverJuegosFormatoCSV(juegos)
+        # necesito saber las features que faltan en el que vamos a predecir
+        """
+        training_features = list(x.columns)
+        # si falta alguno le pongo 0
+        for feature in training_features:
+            if feature not in df_juegos.columns:
+                df_juegos[feature] = 0
+
+        # si tengo un nuevo dato que no estan en el modelo que entrene lo borro
+        for feature in df_juegos.columns:
+            if feature not in training_features:
+                if feature in df_juegos.columns:
+                    df_juegos = df_juegos.drop(columns=[feature])
+
+        df_juegos = df_juegos[training_features]
+        """
+        # Obtener las columnas que están en x pero no en df_juegos
+        missing_columns = set(x.columns) - set(df_juegos.columns)
+
+        # Agregar las columnas faltantes a df_juegos con valores 0
+        for column in missing_columns:
+            df_juegos[column] = 0
+
+        # Filtrar df_juegos para que solo contenga las columnas presentes en x
+        df_juegos = df_juegos[x.columns]
+        df_juegos = df_juegos.loc[:,~df_juegos.columns.duplicated()]
+        # Verificar que las columnas sean las mismas
+        assert set(x.columns) == set(df_juegos.columns), "Las columnas no coinciden"
+        
+        print("Forma de df_juegos:", df_juegos.shape)
+        print("Forma de x:", x.shape)
+        print("Columnas en x:")
+        print(x.columns)
+
+        print("Columnas en df_juegos:")
+        print(df_juegos.columns)
+        result = modelo.predict(df_juegos)
+        # me quedo con los juegos que predicen bien
+        j = 0
+        for i in range(len(result)):
+            if result[i] == 0:
+                csv_juegos.pop(j)
+            else:
+                j += 1
+    else:
+        csv_juegos=Juegoslista
+    ##### guardo juegos
+    direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id}.json'
+    # Escribir la lista en un archivo JSON
+    with open(direccion, 'w') as archivo:
+        json.dump(csv_juegos, archivo)
+
+    return 
+
+class ActionGuardarPerfil(Action):
+    def name(self) -> Text:
+        return "action_guardar_Perfil"
+    async def run(
+      self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
+    ) -> List[Dict[Text, Any]]:
+        input_data=tracker.latest_message
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot and fueChau == False) or (IdActual == idSlot): ##tengo que guardar el anterior o guardo el nuevo
+            if (IdActual == idSlot):
+                fueChau=True
+            id = tracker.get_slot("id")
+            nombre = tracker.get_slot("nombre")
+            Categorias = tracker.get_slot("categorias")
+            JuegosGustan = tracker.get_slot("juegosGustan")
+            JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+            Juegos = tracker.get_slot("juegos")
+            if len(Juegos) > 0:
+                juego = Juegos[-1]
+            else:
+                juego = None
+            Juegoslista = tracker.get_slot("juegosTipoCSV")
+            guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, fueChau, Juegoslista)
+        ## me fijo si guardar el perfil nuevo que cambie
+        texto=pd.read_csv('C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/perfiles.csv',sep=';')
+        fila = texto[texto['ID'] == IdActual]
+        if not fila.empty:
+            Chau = fila['Chau'].values[0]
+            if not Chau: #entonces guardo ese perfil y lo cargo por si acaso
+                id_valor = fila['ID'].values[0]
+                nombre_valor = fila['Nombre'].values[0]
+                categorias = ast.literal_eval(fila['Categorias'].values[0])
+                ultimo_juego = fila['LastGame'].values[0]
+                guardar_perfil(id_valor, nombre_valor, categorias, [], [], ultimo_juego, True, [])
+                direccion = f'C:/Users/AGUSTIN/Documents/BotExploratoria/Perfiles/DataTrainUsuarios/juegos_{id_valor}.json'
+                try:
+                    with open(direccion, 'r') as archivo:
+                        contenido = archivo.read()
+                        if contenido.strip():  # Verifica si el contenido no está vacío
+                            csv_juegos = json.loads(contenido)
+                        else:
+                            csv_juegos = []  # Si está vacío, asigna una lista vacía
+                except json.decoder.JSONDecodeError:
+                    csv_juegos = []  # Si hay un error de decodificación JSON, asigna una lista vacía
+                juegos = [ultimo_juego]
+                if len(csv_juegos) > 0:
+                    usarArbol = True
+                else:
+                    usarArbol = False
+                if ultimo_juego:
+                    juegosSesionActual= [imprimirJuegoUnico(ultimo_juego)]
+                else:
+                    juegosSesionActual= []
+                nombre = nombre_valor
+                JuegosGustan=[]
+                JuegosNoGustan=[]
+                return [SlotSet("juegosNoGustan", JuegosNoGustan),SlotSet("juegosGustan", JuegosGustan),SlotSet("FueChau", True), SlotSet("id", id_valor), SlotSet("nombre", nombre_valor), SlotSet("juegos", juegos), SlotSet("usarArbol", usarArbol), SlotSet("categorias", categorias), SlotSet("juegosSesionActual", juegosSesionActual), SlotSet("juegosTipoCSV", csv_juegos)]
+                #no tengo que hacer mas
+        return [] # si no tiene perfil o se despidio
     
 class ActionCambiarNombre(Action):
     def name(self) -> Text:
@@ -915,13 +2236,35 @@ class ActionCambiarNombre(Action):
     async def run(
       self, dispatcher, tracker: Tracker, domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
-        latest_entities = tracker.latest_message.get('entities', [])
-        nuevoNombre = [entity['value'] for entity in latest_entities if entity['entity'] == 'username']
-        if nuevoNombre:
-            nombre=nuevoNombre
+        input_data=tracker.latest_message
+        IdActual= input_data["metadata"]["message"]["from"]["id"]
+        idSlot= tracker.get_slot("id")
+        fueChau = tracker.get_slot("FueChau")
+        if (IdActual != idSlot) and (fueChau == False):
+            message = "Deci hola antes no?"
+            dispatcher.utter_message(text=message)
+            # Resto de tu código aquí...
+            id = tracker.get_slot("id")
+            nombre = tracker.get_slot("nombre")
+            Categorias = tracker.get_slot("categorias")
+            JuegosGustan = tracker.get_slot("juegosGustan")
+            JuegosNoGustan = tracker.get_slot("juegosNoGustan")
+            Juegos = tracker.get_slot("juegos")
+            if len(Juegos) > 0:
+                juego = Juegos[-1]
+            else:
+                juego = None
+            Juegoslista = tracker.get_slot("juegosTipoCSV")
+            guardar_perfil(id, nombre, Categorias, JuegosGustan, JuegosNoGustan, juego, False, Juegoslista)
+            return [ ActionExecuted("action_first")]
         else:
-            nombre= tracker.get_slot("nombre")
-        message = f"Bueno entonces te voy a llamar {nombre}"
-        dispatcher.utter_message(text=message)
-        return [SlotSet("nombre", nombre)]
+            latest_entities = tracker.latest_message.get('entities', [])
+            nuevoNombre = [entity['value'] for entity in latest_entities if entity['entity'] == 'username']
+            if nuevoNombre:
+                nombre=nuevoNombre
+            else:
+                nombre= tracker.get_slot("nombre")
+            message = f"Bueno entonces te voy a llamar {nombre}"
+            dispatcher.utter_message(text=message)
+        return [SlotSet("nombre", nombre),SlotSet("FueChau", False)]
 

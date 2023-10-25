@@ -77,6 +77,12 @@ slots:
     influence_conversation: false
     mappings:
     - type: custom
+  FueChau:
+    type: bool
+    initial_value: True
+    influence_conversation: false
+    mappings:
+    - type: custom
   usarArbol:
     type: bool
     initial_value: False
